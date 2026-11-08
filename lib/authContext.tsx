@@ -6,8 +6,10 @@ import {
   getStoredUsers,
   saveUsers,
   getStoredCurrentUser,
-  setStoredCurrentUser
+  setStoredCurrentUser,
+  pullLatestRemoteProgress
 } from './storage';
+import { p2pManager } from './p2pSync';
 
 interface AuthContextType {
   user: User | null;
@@ -35,19 +37,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const currentUser = getStoredCurrentUser();
     if (currentUser) {
-      // Validate user still exists in system
       const valid = loadedUsers.find(u => u.id === currentUser.id);
       if (valid) {
         setUser(valid);
+        p2pManager.initialize(valid);
       } else {
         setStoredCurrentUser(null);
       }
-    } else {
-      // Auto login as default admin for convenience if desired, or leave null
-      // Let's keep null so they see the login / quick switch options
     }
     setInitialized(true);
+
+    // Pull background progress and cloud users
+    pullLatestRemoteProgress().catch(() => {});
+    fetch('/api/users')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data.users)) {
+          setUsers(data.users);
+          saveUsers(data.users);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      p2pManager.initialize(user);
+    }
+  }, [user]);
 
   const refreshUsers = () => {
     const loadedUsers = getStoredUsers();
@@ -115,6 +132,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const newUsersList = [newUser, ...currentUsers];
     saveUsers(newUsersList);
     setUsers(newUsersList);
+
+    // Sync to cloud API
+    try {
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: newUser })
+      }).catch(() => {});
+    } catch (e) {}
 
     return { success: true, message: `Usuario ${newUser.name} creado exitosamente.` };
   };

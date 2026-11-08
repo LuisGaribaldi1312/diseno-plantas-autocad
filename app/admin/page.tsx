@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/authContext';
-import { getAllProgress, gradeStudentProject } from '@/lib/storage';
+import { getAllProgress, gradeStudentProject, pullLatestRemoteProgress } from '@/lib/storage';
+import { p2pManager } from '@/lib/p2pSync';
 import { User, Role, StudentProgress } from '@/lib/types';
 import {
   ShieldCheck,
@@ -16,12 +17,83 @@ import {
   Award,
   BookOpen,
   Terminal,
-  ExternalLink
+  ExternalLink,
+  Radio,
+  RefreshCw,
+  Activity,
+  Wifi
 } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, users, createUser, updateUserPassword, deleteUser, isAdmin } = useAuth();
-  const allProgress = getAllProgress();
+  const [progressData, setProgressData] = useState<Record<string, StudentProgress>>(() => getAllProgress());
+  const [p2pStatus, setP2pStatus] = useState({ connected: false, peerCount: 0, peerId: '', mode: 'idle' });
+  const [recentP2PEvents, setRecentP2PEvents] = useState<Array<{ id: string; studentName: string; text: string; time: string }>>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('Sincronizando...');
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  // Sync P2P and Cloud polling
+  useEffect(() => {
+    // 1. Initial pull from cloud
+    const doPull = async () => {
+      try {
+        const remote = await pullLatestRemoteProgress();
+        setProgressData(remote);
+        setLastSyncTime(new Date().toLocaleTimeString('es-MX'));
+      } catch (e) {}
+    };
+    doPull();
+
+    // 2. Poll every 4 seconds for continuous real-time sync
+    const interval = setInterval(doPull, 4000);
+
+    // 3. Listen to P2P direct events
+    const unsubP2P = p2pManager.subscribe((msg) => {
+      if (msg.type === 'PROGRESS_UPDATE' && msg.userId && msg.progress) {
+        setProgressData(prev => ({
+          ...prev,
+          [msg.userId]: msg.progress
+        }));
+        setRecentP2PEvents(prev => [
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            studentName: msg.studentName,
+            text: msg.summaryText || 'Actualizó avance en tiempo real',
+            time: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          },
+          ...prev.slice(0, 5)
+        ]);
+      }
+    });
+
+    const unsubStatus = p2pManager.subscribeStatus((st) => {
+      setP2pStatus(st);
+    });
+
+    return () => {
+      clearInterval(interval);
+      unsubP2P();
+      unsubStatus();
+    };
+  }, []);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    setSyncFeedback(null);
+    try {
+      p2pManager.requestAllStudentsSync();
+      const remote = await pullLatestRemoteProgress();
+      setProgressData(remote);
+      setLastSyncTime(new Date().toLocaleTimeString('es-MX'));
+      setSyncFeedback('¡Avances sincronizados exitosamente con todos los alumnos y Vercel Blob!');
+      setTimeout(() => setSyncFeedback(null), 4000);
+    } catch (e) {
+      setSyncFeedback('Sincronización completada con datos locales.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'student' | 'admin'>('all');
@@ -131,7 +203,7 @@ export default function AdminPage() {
     let csv = "ID,Nombre,Matricula,Email,Rol,ProgresoGlobal,UnidadesCompletadas,PracticasCompletadas,PromedioQuiz,ProyectoEstatus,ProyectoNota,UltimoAcceso\n";
 
     users.forEach(u => {
-      const p = allProgress[u.id];
+      const p = progressData[u.id];
       const uCount = p ? Object.values(p.units).filter(un => un.completed).length : 0;
       const prCount = p ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
       const qScores = p ? Object.values(p.quizScores) : [];
@@ -186,6 +258,66 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* REAL-TIME P2P & CLOUD SYNC CONTROL BAR */}
+      <div className="bg-[#141414] border border-[#2D2D2D] rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 red-border-glow">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-red-700 flex items-center justify-center text-[#E51020] shadow">
+            <Radio className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                Sincronización P2P en Tiempo Real & Nube Vercel Blob
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                {p2pStatus.connected ? 'Red P2P Activa (PeerJS)' : 'Conectando Nodo P2P...'}
+              </span>
+              {syncFeedback && (
+                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-700 animate-in fade-in">
+                  ✓ {syncFeedback}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-neutral-400 mt-1">
+              Hub Docente: <span className="font-mono text-[#FF6B76] font-bold">{p2pStatus.peerId || 'aztlan-hub-profesor-1057'}</span> • {p2pStatus.peerCount} alumno(s) enlazados directamente • Última actualización: <span className="text-white font-mono">{lastSyncTime}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <button
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            className="w-full md:w-auto flex items-center justify-center gap-2 text-xs bg-[#1F1F1F] hover:bg-[#2A2A2A] text-white font-bold px-4 py-2.5 rounded-xl border border-[#333333] transition"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[#E51020] ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Sincronizando...' : '🔄 Forzar Sincronización Inmediata'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* RECENT LIVE P2P EVENT FEED */}
+      {recentP2PEvents.length > 0 && (
+        <div className="bg-[#121212] border border-[#282828] rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-neutral-300">
+            <Activity className="w-3.5 h-3.5 text-[#E51020]" />
+            <span>Feed de Actividad de Alumnos en Vivo (P2P):</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {recentP2PEvents.map((ev) => (
+              <div key={ev.id} className="p-2.5 rounded-lg bg-[#181818] border border-[#2E2E2E] text-xs flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-white block">{ev.studentName}</span>
+                  <span className="text-[11px] text-[#FF6B76] line-clamp-1">{ev.text}</span>
+                </div>
+                <span className="text-[10px] text-neutral-500 font-mono shrink-0 pl-2">{ev.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 2. STATS PILLS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-5 rounded-xl bg-[#141414] border border-[#262626] flex items-center justify-between">
@@ -202,7 +334,7 @@ export default function AdminPage() {
           <div>
             <span className="text-xs text-neutral-400 block font-bold">Prácticas Resueltas</span>
             <span className="text-2xl font-black text-emerald-400 font-mono">
-              {Object.values(allProgress).reduce(
+              {Object.values(progressData).reduce(
                 (acc, p) => acc + Object.values(p.practices).filter(pr => pr.completed).length,
                 0
               )}
@@ -215,7 +347,7 @@ export default function AdminPage() {
           <div>
             <span className="text-xs text-neutral-400 block font-bold">Proyectos Entregados</span>
             <span className="text-2xl font-black text-[#E51020] font-mono">
-              {Object.values(allProgress).filter(p => p.projectStatus === 'entregado' || p.projectStatus === 'evaluado').length}
+              {Object.values(progressData).filter(p => p.projectStatus === 'entregado' || p.projectStatus === 'evaluado').length}
             </span>
           </div>
           <Award className="w-6 h-6 text-[#E51020]" />
@@ -267,7 +399,7 @@ export default function AdminPage() {
             </thead>
             <tbody className="divide-y divide-[#222222]">
               {filteredUsers.map(u => {
-                const p = allProgress[u.id];
+                const p = progressData[u.id];
                 const uCount = p ? Object.values(p.units).filter(un => un.completed).length : 0;
                 const prCount = p ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
                 const globalPercent = Math.round(

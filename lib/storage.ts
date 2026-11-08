@@ -1,4 +1,5 @@
 import { User, StudentProgress } from './types';
+import { p2pManager } from './p2pSync';
 
 export const DEFAULT_USERS: User[] = [
   {
@@ -205,6 +206,66 @@ export function getStudentProgress(userId: string): StudentProgress {
   return newProgress;
 }
 
+export function syncProgressToRemote(userId: string, current: StudentProgress, summary?: string): void {
+  if (typeof window === 'undefined') return;
+
+  // 1. Broadcast via Real-time P2P WebRTC / BroadcastChannel
+  try {
+    p2pManager.broadcastProgress(current, summary);
+  } catch (e) {
+    console.warn('P2P sync notification error:', e);
+  }
+
+  // 2. Transmit to Cloud Sync API (/api/progress)
+  try {
+    fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, progress: current }),
+      keepalive: true
+    }).catch(err => console.warn('Cloud sync background error:', err));
+  } catch (e) {}
+}
+
+export async function pullLatestRemoteProgress(): Promise<Record<string, StudentProgress>> {
+  if (typeof window === 'undefined') return getAllProgress();
+  try {
+    const res = await fetch(`/api/progress?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.progress) {
+        const local = getAllProgress();
+        const merged: Record<string, StudentProgress> = { ...local };
+        for (const [uid, remoteProg] of Object.entries(data.progress)) {
+          const rProg = remoteProg as StudentProgress;
+          const lProg = merged[uid];
+          if (!lProg) {
+            merged[uid] = rProg;
+          } else {
+            merged[uid] = {
+              ...lProg,
+              ...rProg,
+              units: { ...lProg.units, ...rProg.units },
+              practices: { ...lProg.practices, ...rProg.practices },
+              quizScores: { ...lProg.quizScores, ...rProg.quizScores },
+              projectStatus: rProg.projectStatus !== 'no_iniciado' ? rProg.projectStatus : lProg.projectStatus,
+              projectGrade: rProg.projectGrade !== undefined ? rProg.projectGrade : lProg.projectGrade,
+              projectUrl: rProg.projectUrl || lProg.projectUrl,
+              projectNotes: rProg.projectNotes || lProg.projectNotes,
+              lastActive: (new Date(rProg.lastActive || 0) > new Date(lProg.lastActive || 0)) ? rProg.lastActive : lProg.lastActive
+            };
+          }
+        }
+        saveAllProgress(merged);
+        return merged;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not pull remote progress:', e);
+  }
+  return getAllProgress();
+}
+
 export function updateStudentUnitProgress(userId: string, unitId: string, completed: boolean, score: number): void {
   const all = getAllProgress();
   const current = all[userId] || {
@@ -224,6 +285,7 @@ export function updateStudentUnitProgress(userId: string, unitId: string, comple
   current.lastActive = new Date().toISOString();
   all[userId] = current;
   saveAllProgress(all);
+  syncProgressToRemote(userId, current, `Completó el tema de ${unitId.toUpperCase()} con ${score}% de calificación`);
 }
 
 export function updateStudentPracticeProgress(
@@ -251,6 +313,7 @@ export function updateStudentPracticeProgress(
   current.lastActive = new Date().toISOString();
   all[userId] = current;
   saveAllProgress(all);
+  syncProgressToRemote(userId, current, `Completó la práctica CAD ${practiceId.toUpperCase()} con ${score}% de calificación`);
 }
 
 export function updateStudentQuizScore(userId: string, quizId: string, score: number): void {
@@ -267,6 +330,7 @@ export function updateStudentQuizScore(userId: string, quizId: string, score: nu
   current.lastActive = new Date().toISOString();
   all[userId] = current;
   saveAllProgress(all);
+  syncProgressToRemote(userId, current, `Aprobó cuestionario técnico con ${score}% de calificación`);
 }
 
 export function updateStudentProjectSubmission(
@@ -289,6 +353,7 @@ export function updateStudentProjectSubmission(
   current.lastActive = new Date().toISOString();
   all[userId] = current;
   saveAllProgress(all);
+  syncProgressToRemote(userId, current, `Entregó el Proyecto Final Capstone (URL: ${projectUrl})`);
 }
 
 export function gradeStudentProject(userId: string, grade: number): void {
@@ -296,7 +361,9 @@ export function gradeStudentProject(userId: string, grade: number): void {
   if (all[userId]) {
     all[userId].projectStatus = 'evaluado';
     all[userId].projectGrade = grade;
+    all[userId].lastActive = new Date().toISOString();
     saveAllProgress(all);
+    syncProgressToRemote(userId, all[userId], `Calificación asignada al Proyecto Final: ${grade}/100`);
   }
 }
 
