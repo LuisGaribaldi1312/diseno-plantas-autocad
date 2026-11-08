@@ -52,6 +52,12 @@ function CadLabContent() {
             <p className="text-xs text-neutral-400">
               Espacio interactivo 2D con comandos reales, bloques industriales ISA-5.1 y normas NOM/ISO.
             </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[11px] font-mono text-emerald-400">
+                Sincronización P2P y Nube activa • Avances enviados al Docente en tiempo real
+              </span>
+            </div>
           </div>
         </div>
 

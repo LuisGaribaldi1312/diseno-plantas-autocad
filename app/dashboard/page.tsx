@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/authContext';
 import { COURSE_UNITS } from '@/lib/courseData';
-import { getStudentProgress } from '@/lib/storage';
+import { getStudentProgress, calculateStudentOverallPercent, syncProgressToRemote, forceStudentSync } from '@/lib/storage';
 import { StudentProgress } from '@/lib/types';
+import confetti from 'canvas-confetti';
 import {
   BookOpen,
   CheckCircle2,
@@ -16,40 +17,60 @@ import {
   Flame,
   FileCheck2,
   Lock,
-  Layers
+  Layers,
+  RefreshCw,
+  Radio
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [progress, setProgress] = useState<StudentProgress | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       const p = getStudentProgress(user.id);
       setProgress(p);
+      // Auto sync progress to cloud and teacher hub immediately
+      syncProgressToRemote(user.id, p, 'Sincronización automática de avance del estudiante');
     }
   }, [user]);
 
+  const handleForceSync = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await forceStudentSync(user.id);
+      const updated = getStudentProgress(user.id);
+      setProgress(updated);
+      setSyncMsg(res.message);
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+      setTimeout(() => setSyncMsg(null), 5000);
+    } catch (e) {
+      setSyncMsg('Avance guardado localmente.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const activeProgress = progress || {
     userId: 'guest',
-    units: {
-      'unidad-1': { unitId: 'unidad-1', completed: true, score: 95, lastAccessed: new Date().toISOString() },
-      'unidad-2': { unitId: 'unidad-2', completed: true, score: 90, lastAccessed: new Date().toISOString() },
-    },
-    practices: {
-      'practica-1': { practiceId: 'practica-1', completed: true, score: 100, commandsUsed: ['UNITS', 'LIMITS', 'RECTANG'] },
-      'practica-2': { practiceId: 'practica-2', completed: true, score: 90, commandsUsed: ['PLINE', 'OFFSET', 'TRIM'] },
-    },
-    quizScores: { 'quiz-1': 100, 'quiz-2': 80 },
-    projectStatus: 'en_progreso',
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: 'no_iniciado',
     lastActive: new Date().toISOString()
   };
 
-  const completedUnitsCount = Object.values(activeProgress.units).filter(u => u.completed).length;
-  const completedPracticesCount = Object.values(activeProgress.practices).filter(p => p.completed).length;
-  const overallPercent = Math.round(
-    ((completedUnitsCount / 6) * 0.4 + (completedPracticesCount / 6) * 0.4 + (activeProgress.projectStatus === 'evaluado' ? 0.2 : activeProgress.projectStatus === 'entregado' ? 0.15 : activeProgress.projectStatus === 'en_progreso' ? 0.05 : 0)) * 100
-  );
+  const completedUnitsCount = activeProgress.units ? Object.values(activeProgress.units).filter(u => u.completed).length : 0;
+  const completedPracticesCount = activeProgress.practices ? Object.values(activeProgress.practices).filter(p => p.completed).length : 0;
+  const overallPercent = calculateStudentOverallPercent(activeProgress);
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-10 py-10 space-y-8 autocad-grid bg-[#0A0A0A]">
@@ -91,6 +112,32 @@ export default function DashboardPage() {
               className="bg-gradient-to-r from-[#E51020] to-[#FF4D5A] h-full transition-all duration-500"
               style={{ width: `${Math.max(overallPercent, 8)}%` }}
             />
+          </div>
+
+          {/* Sincronización en Tiempo Real al Docente */}
+          <div className="pt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#262626]">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs text-neutral-400">
+                Sincronización P2P & Nube activa con el Docente
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {syncMsg && (
+                <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-700 px-3 py-1.5 rounded-xl animate-in fade-in">
+                  ✓ {syncMsg}
+                </span>
+              )}
+              <button
+                onClick={handleForceSync}
+                disabled={isSyncing}
+                className="flex items-center gap-2 bg-[#E51020] hover:bg-[#C40816] text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-red-950/50 red-glow"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'Transmitiendo...' : '🚀 Forzar Envío de mi Avance al Docente'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

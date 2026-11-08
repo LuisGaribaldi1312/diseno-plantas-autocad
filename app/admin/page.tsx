@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/authContext';
-import { getAllProgress, gradeStudentProject, pullLatestRemoteProgress } from '@/lib/storage';
+import { getAllProgress, gradeStudentProject, pullLatestRemoteProgress, calculateStudentOverallPercent } from '@/lib/storage';
 import { p2pManager } from '@/lib/p2pSync';
 import { User, Role, StudentProgress } from '@/lib/types';
 import {
@@ -21,7 +21,8 @@ import {
   Radio,
   RefreshCw,
   Activity,
-  Wifi
+  Wifi,
+  Eye
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -117,6 +118,9 @@ export default function AdminPage() {
   const [gradingUser, setGradingUser] = useState<{ user: User; progress: StudentProgress } | null>(null);
   const [gradeInput, setGradeInput] = useState<number>(100);
 
+  // Modal: View Student Full Details
+  const [viewingDetailsUser, setViewingDetailsUser] = useState<{ user: User; progress: StudentProgress } | null>(null);
+
   if (!isAdmin) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -208,7 +212,7 @@ export default function AdminPage() {
       const prCount = p ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
       const qScores = p ? Object.values(p.quizScores) : [];
       const qAvg = qScores.length > 0 ? Math.round(qScores.reduce((a, b) => a + b, 0) / qScores.length) : 0;
-      const global = Math.round(((uCount / 6) * 0.4 + (prCount / 6) * 0.4 + (p?.projectStatus === 'evaluado' ? 0.2 : 0)) * 100);
+      const global = p?.globalPercent !== undefined ? p.globalPercent : calculateStudentOverallPercent(p);
 
       csv += `"${u.id}","${u.name}","${u.matricula}","${u.email}","${u.role}","${global}%","${uCount}/6","${prCount}/6","${qAvg}%","${p?.projectStatus || 'no_iniciado'}","${p?.projectGrade || 'N/A'}","${u.lastLogin || 'Nunca'}"\n`;
     });
@@ -402,9 +406,9 @@ export default function AdminPage() {
                 const p = progressData[u.id];
                 const uCount = p ? Object.values(p.units).filter(un => un.completed).length : 0;
                 const prCount = p ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
-                const globalPercent = Math.round(
-                  ((uCount / 6) * 0.4 + (prCount / 6) * 0.4 + (p?.projectStatus === 'evaluado' ? 0.2 : p?.projectStatus === 'entregado' ? 0.15 : 0)) * 100
-                );
+                const globalPercent = p?.globalPercent !== undefined
+                  ? p.globalPercent
+                  : calculateStudentOverallPercent(p);
 
                 return (
                   <tr key={u.id} className="hover:bg-[#1A1A1A] transition">
@@ -467,6 +471,26 @@ export default function AdminPage() {
                     </td>
 
                     <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                      <button
+                        onClick={() => {
+                          setViewingDetailsUser({
+                            user: u,
+                            progress: p || {
+                              userId: u.id,
+                              units: {},
+                              practices: {},
+                              quizScores: {},
+                              projectStatus: 'no_iniciado',
+                              lastActive: ''
+                            }
+                          });
+                        }}
+                        title="Ver Desglose Completo de Avance"
+                        className="p-1.5 rounded-lg bg-[#222222] hover:bg-[#E51020] text-neutral-300 hover:text-white border border-[#333333] transition"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+
                       <button
                         onClick={() => {
                           setSelectedUserForPassword(u);
@@ -791,6 +815,155 @@ export default function AdminPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 7. MODAL: DETALLE COMPLETO DE AVANCES DEL ALUMNO */}
+      {viewingDetailsUser && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#141414] border border-[#2D2D2D] w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-5 red-border-glow max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#262626] pb-3">
+              <div>
+                <h3 className="text-base font-black text-white uppercase flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-[#E51020]" />
+                  <span>Expediente de Avances: {viewingDetailsUser.user.name}</span>
+                </h3>
+                <p className="text-xs text-neutral-400 font-mono">
+                  {viewingDetailsUser.user.email} • {viewingDetailsUser.user.matricula}
+                </p>
+              </div>
+              <button
+                onClick={() => setViewingDetailsUser(null)}
+                className="text-neutral-400 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Overall Score Badge */}
+            <div className="bg-[#1C1C1C] p-4 rounded-xl border border-[#333333] flex items-center justify-between">
+              <div>
+                <span className="text-xs text-neutral-400 block font-bold">Porcentaje Real de Avance en Pantalla:</span>
+                <span className="text-3xl font-black text-[#E51020] font-mono">
+                  {viewingDetailsUser.progress.globalPercent !== undefined 
+                    ? viewingDetailsUser.progress.globalPercent 
+                    : calculateStudentOverallPercent(viewingDetailsUser.progress)}%
+                </span>
+              </div>
+              <div className="text-right text-xs">
+                <span className="text-neutral-400 block">Última Sincronización:</span>
+                <span className="text-white font-mono font-bold">
+                  {viewingDetailsUser.progress.lastSyncedAt
+                    ? new Date(viewingDetailsUser.progress.lastSyncedAt).toLocaleString('es-MX')
+                    : viewingDetailsUser.progress.lastActive
+                    ? new Date(viewingDetailsUser.progress.lastActive).toLocaleString('es-MX')
+                    : 'Sin registro'}
+                </span>
+              </div>
+            </div>
+
+            {/* Units Breakdown */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-[#E51020]" />
+                <span>Unidades Curriculares Aprobadas ({Object.values(viewingDetailsUser.progress.units || {}).filter(u => u.completed).length} de 6):</span>
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {Object.entries(viewingDetailsUser.progress.units || {}).map(([uid, u]) => (
+                  <div key={uid} className="p-2.5 rounded-lg bg-[#181818] border border-[#2E2E2E] flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-white uppercase font-mono text-[11px] block">{uid}</span>
+                      <span className="text-neutral-400 text-[10px]">
+                        {u.completed ? '✓ Aprobado' : 'En proceso'}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[#E51020] font-bold">{u.score}%</span>
+                  </div>
+                ))}
+                {Object.keys(viewingDetailsUser.progress.units || {}).length === 0 && (
+                  <p className="text-xs text-neutral-500 italic col-span-2">El alumno aún no ha presentado quizzes de unidades.</p>
+                )}
+              </div>
+            </div>
+
+            {/* CAD Practices Breakdown */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Terminal className="w-4 h-4 text-[#E51020]" />
+                <span>Prácticas de AutoCAD Completadas ({Object.values(viewingDetailsUser.progress.practices || {}).filter(p => p.completed).length} de 6):</span>
+              </h4>
+              <div className="space-y-2 text-xs">
+                {Object.entries(viewingDetailsUser.progress.practices || {}).map(([pid, pr]) => (
+                  <div key={pid} className="p-3 rounded-lg bg-[#181818] border border-[#2E2E2E] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white uppercase font-mono text-[11px]">{pid}</span>
+                      <span className="font-mono text-emerald-400 font-bold">{pr.score}%</span>
+                    </div>
+                    {pr.commandsUsed && pr.commandsUsed.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        <span className="text-[10px] text-neutral-400">Comandos ejecutados:</span>
+                        {pr.commandsUsed.map((cmd, i) => (
+                          <span key={i} className="px-1.5 py-0.2 bg-[#252525] text-[#FF4D5A] rounded font-mono text-[10px]">
+                            {cmd}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {Object.keys(viewingDetailsUser.progress.practices || {}).length === 0 && (
+                  <p className="text-xs text-neutral-500 italic">El alumno aún no ha enviado prácticas virtuales de AutoCAD.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Project Status */}
+            <div className="space-y-2 border-t border-[#262626] pt-3">
+              <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-[#E51020]" />
+                <span>Proyecto Final Capstone:</span>
+              </h4>
+              <div className="p-3 rounded-xl bg-[#181818] border border-[#2E2E2E] text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-neutral-300">
+                    Estatus: <strong className="text-white uppercase font-mono">{viewingDetailsUser.progress.projectStatus}</strong>
+                  </span>
+                  {viewingDetailsUser.progress.projectGrade !== undefined && (
+                    <span className="text-emerald-400 font-bold font-mono">
+                      Nota asignada: {viewingDetailsUser.progress.projectGrade}/100
+                    </span>
+                  )}
+                </div>
+                {viewingDetailsUser.progress.projectUrl && (
+                  <p className="text-neutral-400">
+                    URL entregada:{' '}
+                    <a
+                      href={viewingDetailsUser.progress.projectUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#E51020] underline font-bold"
+                    >
+                      {viewingDetailsUser.progress.projectUrl}
+                    </a>
+                  </p>
+                )}
+                {viewingDetailsUser.progress.projectNotes && (
+                  <p className="text-neutral-300 bg-[#121212] p-2 rounded border border-[#2A2A2A]">
+                    {viewingDetailsUser.progress.projectNotes}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setViewingDetailsUser(null)}
+                className="bg-[#242424] hover:bg-[#333333] text-white px-5 py-2 rounded-xl text-xs font-bold transition"
+              >
+                Cerrar Expediente
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -42,10 +42,13 @@ async function loadCloudProgress(): Promise<Record<string, StudentProgress>> {
 async function saveCloudProgress(data: Record<string, StudentProgress>): Promise<boolean> {
   memoryCacheProgress = { ...memoryCacheProgress, ...data };
   try {
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (token) {
       await put(PROGRESS_BLOB_PATH, JSON.stringify(memoryCacheProgress, null, 2), {
+        token,
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true,
         contentType: 'application/json',
       });
       return true;

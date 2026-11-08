@@ -36,6 +36,8 @@ export interface StudentProgress {
   projectGrade?: number;
   projectUrl?: string;
   projectNotes?: string;
+  globalPercent?: number;
+  lastSyncedAt?: string;
   lastActive: string;
 }
 

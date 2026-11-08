@@ -35,10 +35,13 @@ async function loadCloudUsers(): Promise<User[]> {
 async function saveCloudUsers(users: User[]): Promise<boolean> {
   memoryUsers = users;
   try {
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (token) {
       await put(USERS_BLOB_PATH, JSON.stringify(users, null, 2), {
+        token,
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true,
         contentType: 'application/json',
       });
       return true;

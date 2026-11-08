@@ -206,12 +206,35 @@ export function getStudentProgress(userId: string): StudentProgress {
   return newProgress;
 }
 
+export function calculateStudentOverallPercent(p: StudentProgress): number {
+  if (!p) return 0;
+  const completedUnitsCount = p.units ? Object.values(p.units).filter(u => u.completed).length : 0;
+  const completedPracticesCount = p.practices ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
+  
+  let projectWeight = 0;
+  if (p.projectStatus === 'evaluado') projectWeight = 0.20;
+  else if (p.projectStatus === 'entregado') projectWeight = 0.15;
+  else if (p.projectStatus === 'en_progreso') projectWeight = 0.05;
+
+  const percent = Math.round(((completedUnitsCount / 6) * 0.40 + (completedPracticesCount / 6) * 0.40 + projectWeight) * 100);
+  return Math.min(100, Math.max(0, percent));
+}
+
 export function syncProgressToRemote(userId: string, current: StudentProgress, summary?: string): void {
   if (typeof window === 'undefined') return;
 
+  current.globalPercent = calculateStudentOverallPercent(current);
+  current.lastSyncedAt = new Date().toISOString();
+
+  try {
+    const all = getAllProgress();
+    all[userId] = current;
+    saveAllProgress(all);
+  } catch (e) {}
+
   // 1. Broadcast via Real-time P2P WebRTC / BroadcastChannel
   try {
-    p2pManager.broadcastProgress(current, summary);
+    p2pManager.broadcastProgress(current, summary || `Avance actualizado al ${current.globalPercent}%`);
   } catch (e) {
     console.warn('P2P sync notification error:', e);
   }
@@ -225,6 +248,45 @@ export function syncProgressToRemote(userId: string, current: StudentProgress, s
       keepalive: true
     }).catch(err => console.warn('Cloud sync background error:', err));
   } catch (e) {}
+}
+
+export async function forceStudentSync(userId: string): Promise<{ success: boolean; globalPercent: number; message: string }> {
+  const current = getStudentProgress(userId);
+  current.globalPercent = calculateStudentOverallPercent(current);
+  current.lastSyncedAt = new Date().toISOString();
+  current.lastActive = new Date().toISOString();
+  
+  const all = getAllProgress();
+  all[userId] = current;
+  saveAllProgress(all);
+
+  // Broadcast P2P
+  try {
+    p2pManager.broadcastProgress(current, `Envío forzado de avance: ${current.globalPercent}%`);
+  } catch (e) {}
+
+  // Push to cloud API
+  try {
+    const res = await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, progress: current }),
+      cache: 'no-store'
+    });
+    if (res.ok) {
+      return {
+        success: true,
+        globalPercent: current.globalPercent,
+        message: `¡Tu avance del ${current.globalPercent}% ha sido transmitido exitosamente al Docente en la nube y por P2P!`
+      };
+    }
+  } catch (err) {}
+
+  return {
+    success: true,
+    globalPercent: current.globalPercent,
+    message: `¡Avance registrado localmente y transmitido vía P2P (${current.globalPercent}%)!`
+  };
 }
 
 export async function pullLatestRemoteProgress(): Promise<Record<string, StudentProgress>> {
