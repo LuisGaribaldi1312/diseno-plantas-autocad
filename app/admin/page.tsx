@@ -57,7 +57,7 @@ export default function AdminPage() {
           </p>
           <div className="pt-2">
             <span className="text-[11px] font-mono text-[#E51020] font-bold block">
-              Admin predeterminado: admin@aztlan.edu.mx
+              Coordinación Académica • Universidad Aztlán
             </span>
           </div>
         </div>

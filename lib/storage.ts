@@ -44,6 +44,36 @@ export const DEFAULT_USERS: User[] = [
     carrera: "Ingeniería Industrial - 10° Cuatrimestre",
     createdAt: "2026-11-02T09:30:00Z",
     lastLogin: "2026-11-05T11:45:00Z"
+  },
+  {
+    id: "student-jtorres",
+    name: "J. Torres",
+    email: "jtorres@aztlan.edu.mx",
+    password: "jtorres",
+    role: "student",
+    matricula: "AZT-1057-0101",
+    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
+    createdAt: "2026-11-08T08:00:00Z"
+  },
+  {
+    id: "student-xguevara",
+    name: "X. Guevara",
+    email: "xguevara@aztlan.edu.mx",
+    password: "xguevara",
+    role: "student",
+    matricula: "AZT-1057-0102",
+    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
+    createdAt: "2026-11-08T08:00:00Z"
+  },
+  {
+    id: "student-adominguez",
+    name: "A. Domínguez",
+    email: "adominguez@aztlan.edu.mx",
+    password: "adominguez",
+    role: "student",
+    matricula: "AZT-1057-0103",
+    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
+    createdAt: "2026-11-08T08:00:00Z"
   }
 ];
 
@@ -105,7 +135,21 @@ export function getStoredUsers(): User[] {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
       return DEFAULT_USERS;
     }
-    return JSON.parse(raw);
+    const parsed: User[] = JSON.parse(raw);
+    const existingEmails = new Set(parsed.map(u => u.email.toLowerCase().trim()));
+    let hasUpdates = false;
+
+    for (const defUser of DEFAULT_USERS) {
+      if (!existingEmails.has(defUser.email.toLowerCase().trim())) {
+        parsed.push(defUser);
+        hasUpdates = true;
+      }
+    }
+
+    if (hasUpdates) {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(parsed));
+    }
+    return parsed;
   } catch (err) {
     console.error("Error reading users from storage:", err);
     return DEFAULT_USERS;

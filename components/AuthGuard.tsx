@@ -56,30 +56,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             <div className="pt-2">
               <Link
                 href="/login"
-                className="w-full flex items-center justify-center gap-2 bg-[#E51020] hover:bg-[#C40816] text-white font-bold py-3 px-4 rounded-xl text-sm transition red-border-glow shadow-lg"
+                className="w-full flex items-center justify-center gap-2 bg-[#E51020] hover:bg-[#C40816] text-white font-bold py-3.5 px-4 rounded-xl text-sm transition red-border-glow shadow-lg"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Ingresar al Portal con mis Credenciales</span>
               </Link>
-            </div>
-
-            {/* Quick Demo Credentials */}
-            <div className="pt-4 border-t border-[#262626] text-left space-y-2">
-              <span className="text-[11px] font-mono text-neutral-400 font-semibold uppercase tracking-wider block text-center">
-                Credenciales de Acceso Rápido
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                <div className="bg-[#1C1C1C] p-2 rounded border border-[#333333]">
-                  <span className="text-[#E51020] font-bold block">Super Admin:</span>
-                  <span className="text-white text-[10px]">admin@aztlan.edu.mx</span>
-                  <span className="text-neutral-500 block text-[10px]">Pass: Admin2026!</span>
-                </div>
-                <div className="bg-[#1C1C1C] p-2 rounded border border-[#333333]">
-                  <span className="text-white font-bold block">Estudiante:</span>
-                  <span className="text-white text-[10px]">estudiante@aztlan.edu.mx</span>
-                  <span className="text-neutral-500 block text-[10px]">Pass: Alumno2026!</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

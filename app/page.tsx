@@ -66,28 +66,19 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Credenciales de Acceso */}
+            {/* Información de Autenticación Institucional */}
             <div className="p-4 rounded-xl bg-[#141414] border border-[#2A2A2A] text-xs space-y-2">
               <div className="flex items-center justify-between text-white font-semibold">
                 <span className="flex items-center gap-1.5 text-[#E51020]">
-                  <Lock className="w-3.5 h-3.5" /> Credenciales del Portal:
+                  <Lock className="w-3.5 h-3.5" /> Acceso Académico Oficial
                 </span>
-                <span className="text-[10px] bg-[#222222] px-2 py-0.5 rounded text-neutral-300 font-mono">
-                  Sesión Requerida
+                <span className="text-[10px] bg-red-950 text-[#FF4D5A] px-2 py-0.5 rounded text-neutral-300 font-mono font-bold border border-red-800">
+                  Autenticación Requerida
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                <div className="bg-[#1C1C1C] p-2.5 rounded border border-[#333333]">
-                  <span className="text-[#E51020] font-bold block">Super Administrador:</span>
-                  <span className="text-white">admin@aztlan.edu.mx</span>
-                  <span className="text-neutral-500 block">Pass: Admin2026!</span>
-                </div>
-                <div className="bg-[#1C1C1C] p-2.5 rounded border border-[#333333]">
-                  <span className="text-white font-bold block">Estudiante Demo:</span>
-                  <span className="text-white">estudiante@aztlan.edu.mx</span>
-                  <span className="text-neutral-500 block">Pass: Alumno2026!</span>
-                </div>
-              </div>
+              <p className="text-[11px] text-neutral-300 leading-relaxed font-sans">
+                Acceso exclusivo para alumnos y docentes de Universidad Aztlán. Inicia sesión con tus credenciales institucionales para interactuar con el simulador de AutoCAD, registrar calificaciones y sincronizar tus avances.
+              </p>
             </div>
           </div>
 

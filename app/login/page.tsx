@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
-import { LogIn, ShieldCheck, UserCheck, AlertCircle, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
+import { LogIn, AlertCircle, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -28,18 +28,6 @@ export default function LoginPage() {
       }, 700);
     } else {
       setErrorMessage(res.message);
-    }
-  };
-
-  const handleQuickLogin = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    const res = login(demoEmail, demoPass);
-    if (res.success) {
-      setSuccessMessage(res.message);
-      setTimeout(() => {
-        router.push(demoEmail.includes('admin') ? '/admin' : '/dashboard');
-      }, 700);
     }
   };
 
@@ -125,31 +113,6 @@ export default function LoginPage() {
               <span>Ingresar al Portal Académico</span>
             </button>
           </form>
-
-          {/* Quick Demo Access Buttons */}
-          <div className="pt-4 border-t border-[#262626] space-y-2">
-            <span className="text-[11px] text-neutral-400 block font-bold text-center uppercase tracking-wider">
-              ⚡ Acceso Directo de Prueba (1 Clic)
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@aztlan.edu.mx', 'Admin2026!')}
-                className="p-3 rounded-xl bg-red-950/40 hover:bg-red-900/50 border border-red-800 text-[#FF4D5A] text-xs font-bold flex flex-col items-center gap-1 transition"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#E51020]" />
-                <span>Super Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('estudiante@aztlan.edu.mx', 'Alumno2026!')}
-                className="p-3 rounded-xl bg-[#1C1C1C] hover:bg-[#282828] border border-[#333333] text-white text-xs font-bold flex flex-col items-center gap-1 transition"
-              >
-                <UserCheck className="w-4 h-4 text-white" />
-                <span>Estudiante Demo</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
