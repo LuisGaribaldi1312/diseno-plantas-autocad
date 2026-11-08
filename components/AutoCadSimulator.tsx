@@ -325,8 +325,10 @@ export default function AutoCadSimulator({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const rawX = e.clientX - rect.left;
-    const rawY = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const rawX = (e.clientX - rect.left) * scaleX;
+    const rawY = (e.clientY - rect.top) * scaleY;
 
     const snapSize = snapEnabled ? 5 : 1;
     const x = Math.round(rawX / snapSize) * snapSize;
@@ -975,15 +977,15 @@ export default function AutoCadSimulator({
         <div className="flex-1 relative overflow-hidden bg-[#0A0A0A] flex items-center justify-center p-2">
           <canvas
             ref={canvasRef}
-            width={880}
-            height={590}
+            width={1280}
+            height={720}
             onMouseMove={handleMouseMove}
             onClick={() => {
               if (commandInput) {
                 executeCommand(commandInput);
               }
             }}
-            className="w-full h-full max-h-[590px] border border-[#222222] rounded-xl bg-[#080808] cursor-crosshair shadow-inner"
+            className="w-full h-full border border-[#222222] rounded-xl bg-[#080808] cursor-crosshair shadow-inner"
           />
 
           {/* Coordinate HUD (Bottom-left) */}

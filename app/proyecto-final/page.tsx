@@ -39,7 +39,7 @@ export default function ProyectoFinalPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 autocad-grid bg-[#0A0A0A]">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-10 space-y-10 autocad-grid bg-[#0A0A0A]">
       {/* Header (AutoCAD Red & Black) */}
       <div className="rounded-2xl bg-[#141414] border border-[#2D2D2D] p-6 sm:p-8 space-y-4 shadow-2xl red-border-glow">
         <div className="flex items-center gap-3">

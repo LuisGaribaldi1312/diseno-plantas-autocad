@@ -27,7 +27,7 @@ export default function HomePage() {
   return (
     <div className="relative overflow-hidden autocad-grid bg-[#0A0A0A]">
       {/* 1. HERO SECTION (AutoCAD Red / Pitch Black / Crisp White) */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 px-4 sm:px-6 lg:px-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/70 border border-red-800 text-[#FF4D5A] text-xs font-mono font-bold">
@@ -165,7 +165,7 @@ export default function HomePage() {
       </section>
 
       {/* 2. PROGRAM OVERVIEW & SYLLABUS CARDS (UNIDADES I a VI) */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#222222]">
+      <section className="py-16 px-4 sm:px-6 lg:px-10 w-full border-t border-[#222222]">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
           <span className="text-xs font-mono font-bold text-[#E51020] uppercase tracking-widest bg-red-950/40 px-3 py-1 rounded-full border border-red-900/60">
             PROGRAMA DE ESTUDIOS OFICIAL • UNIVERSIDAD AZTLÁN
@@ -255,7 +255,7 @@ export default function HomePage() {
       </section>
 
       {/* 3. EVALUATION CRITERIA & OFFICIAL INSTITUTIONAL DETAILS */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#222222]">
+      <section className="py-16 px-4 sm:px-6 lg:px-10 w-full border-t border-[#222222]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           {/* Criterios de Evaluación Oficiales */}
           <div className="p-8 rounded-2xl bg-[#141414] border border-[#2D2D2D] space-y-6">

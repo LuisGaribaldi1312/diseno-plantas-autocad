@@ -25,7 +25,7 @@ export default function RootLayout({
             </AuthGuard>
           </main>
           <footer className="bg-[#050505] border-t border-[#222222] py-8 text-center text-xs text-neutral-500">
-            <div className="max-w-7xl mx-auto px-4 space-y-2">
+            <div className="w-full px-4 sm:px-6 lg:px-10 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#E51020]"></span>
                 <span className="font-semibold text-neutral-300">

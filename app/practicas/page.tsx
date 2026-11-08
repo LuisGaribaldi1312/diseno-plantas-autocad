@@ -18,7 +18,7 @@ export default function PracticasPage() {
   const progress = user ? getStudentProgress(user.id) : null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 autocad-grid bg-[#0A0A0A]">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-10 space-y-8 autocad-grid bg-[#0A0A0A]">
       <div className="space-y-3">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950 text-[#FF4D5A] text-xs font-mono font-bold border border-red-800">
           <Terminal className="w-3.5 h-3.5" />

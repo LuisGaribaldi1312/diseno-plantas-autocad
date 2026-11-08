@@ -37,7 +37,7 @@ export default function Navbar() {
       {/* Top micro red line */}
       <div className="h-0.5 bg-[#E51020] w-full"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Institution */}
           <Link href="/" className="flex items-center gap-3 group">

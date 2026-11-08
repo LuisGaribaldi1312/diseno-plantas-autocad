@@ -52,7 +52,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 autocad-grid bg-[#0A0A0A]">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-10 space-y-8 autocad-grid bg-[#0A0A0A]">
       {/* 1. WELCOME & USER STATUS BANNER (AutoCAD Red / Deep Charcoal) */}
       <div className="rounded-2xl bg-[#141414] border border-[#2D2D2D] p-6 sm:p-8 shadow-xl red-border-glow">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

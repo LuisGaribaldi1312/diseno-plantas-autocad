@@ -35,7 +35,7 @@ function CadLabContent() {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 autocad-grid bg-[#0A0A0A]">
+    <div className="w-full px-3 sm:px-6 lg:px-8 py-4 space-y-4 autocad-grid bg-[#0A0A0A]">
       {/* Top Header & Selector (AutoCAD Red & Black) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-4 rounded-2xl border border-[#2A2A2A] red-border-glow">
         <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ function CadLabContent() {
       </div>
 
       {/* Main Interactive Simulator Component */}
-      <div className="h-[740px]">
+      <div className="h-[80vh] min-h-[680px] w-full">
         <AutoCadSimulator
           practice={activePractice}
           onPracticeComplete={handlePracticeComplete}
