@@ -9,16 +9,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        cad: {
-          dark: '#12161a',
-          board: '#181e24',
-          panel: '#1f2730',
-          border: '#2e3a47',
-          accent: '#0284c7', // Blueprint blue
-          gold: '#f59e0b',   // Safety/Industrial amber
-          green: '#10b981',  // Safe/Complete green
-          red: '#ef4444',    // Warning red
-          cyan: '#06b6d4',   // CAD crosshair cyan
+        autocad: {
+          red: '#E51020',       // Iconic AutoCAD Crimson Red
+          redHover: '#C40816',  // Darker red for hover
+          redLight: '#FF3344',  // Bright accent red
+          redDark: '#800008',   // Deep wine red
+          black: '#0A0A0A',     // Deepest black
+          dark: '#121212',      // Dark charcoal
+          panel: '#1A1A1A',     // Card panel
+          card: '#242424',      // Elevated card
+          border: '#333333',    // Clean dark border
+          borderLight: '#4B5563',
+          white: '#FFFFFF',
+          textMuted: '#9CA3AF',
         }
       },
       fontFamily: {

@@ -9,11 +9,9 @@ import {
   BookOpen,
   Terminal,
   ShieldCheck,
-  FileSpreadsheet,
   Award,
   LogOut,
   LogIn,
-  UserCheck,
   Menu,
   X,
   Compass,
@@ -35,24 +33,27 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0e1622]/95 backdrop-blur-md border-b border-slate-800 text-white">
+    <header className="sticky top-0 z-40 bg-[#0E0E0E]/95 backdrop-blur-md border-b border-[#262626] text-white">
+      {/* Top micro red line */}
+      <div className="h-0.5 bg-[#E51020] w-full"></div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Institution */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-700 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/30 group-hover:scale-105 transition">
+            <div className="w-10 h-10 rounded-xl bg-[#E51020] flex items-center justify-center font-black text-white shadow-lg shadow-red-950/60 group-hover:scale-105 transition red-glow">
               <span className="font-mono text-base tracking-tighter">CAD</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-tight text-white group-hover:text-cyan-400 transition">
+                <span className="font-black text-sm tracking-tight text-white group-hover:text-[#E51020] transition">
                   DISEÑO DE PLANTAS
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-red-950 text-[#FF4D5A] border border-red-800">
                   CLAVE 1057
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">
+              <p className="text-[11px] text-neutral-400 font-medium">
                 Universidad Aztlán • Décimo Cuatrimestre
               </p>
             </div>
@@ -70,10 +71,10 @@ export default function Navbar() {
                   href={link.href}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                     isActive
-                      ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/30'
+                      ? 'bg-[#E51020] text-white shadow-md'
                       : link.highlight
-                      ? 'bg-slate-800 text-amber-300 hover:bg-slate-700 border border-amber-500/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                      ? 'bg-[#1C1C1C] text-[#FF4D5A] hover:bg-[#282828] border border-red-800/60'
+                      : 'text-neutral-300 hover:text-white hover:bg-[#1C1C1C]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -88,11 +89,11 @@ export default function Navbar() {
                 href="/admin"
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ml-1 ${
                   pathname === '/admin'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                    : 'bg-amber-950/40 text-amber-400 border border-amber-800/60 hover:bg-amber-900/40'
+                    ? 'bg-white text-black font-extrabold shadow-md'
+                    : 'bg-red-950/50 text-[#FF6B76] border border-red-800/80 hover:bg-red-900/40'
                 }`}
               >
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <ShieldCheck className="w-4 h-4 text-[#E51020]" />
                 <span>Super Administrador</span>
               </Link>
             )}
@@ -101,19 +102,19 @@ export default function Navbar() {
           {/* User Session Badges */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-3 bg-slate-800/80 pl-3 pr-1.5 py-1 rounded-full border border-slate-700">
+              <div className="flex items-center gap-3 bg-[#171717] pl-3 pr-1.5 py-1 rounded-full border border-[#333333]">
                 <div className="text-right">
-                  <div className="text-xs font-semibold text-white leading-tight">
+                  <div className="text-xs font-bold text-white leading-tight">
                     {user.name.split(' ')[0]}
                   </div>
-                  <div className="text-[10px] text-cyan-400 font-mono">
+                  <div className="text-[10px] text-[#E51020] font-mono font-semibold">
                     {user.role === 'admin' ? 'Super Admin' : user.matricula}
                   </div>
                 </div>
                 <button
                   onClick={logout}
                   title="Cerrar sesión"
-                  className="p-1.5 rounded-full hover:bg-slate-700 text-slate-400 hover:text-red-400 transition"
+                  className="p-1.5 rounded-full hover:bg-[#262626] text-neutral-400 hover:text-[#E51020] transition"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -121,7 +122,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="flex items-center gap-1.5 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-1.5 rounded-lg shadow-md transition"
+                className="flex items-center gap-1.5 text-xs font-bold bg-[#E51020] hover:bg-[#C40816] text-white px-4 py-2 rounded-lg shadow-md shadow-red-950/50 transition"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>Iniciar Sesión</span>
@@ -133,7 +134,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-[#1C1C1C]"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -143,7 +144,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#111a28] border-b border-slate-800 px-4 pt-2 pb-4 space-y-1">
+        <div className="md:hidden bg-[#111111] border-b border-[#262626] px-4 pt-2 pb-4 space-y-1">
           {navLinks.map(link => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -153,7 +154,7 @@ export default function Navbar() {
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
-                  isActive ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                  isActive ? 'bg-[#E51020] text-white' : 'text-neutral-300 hover:bg-[#1C1C1C]'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -166,23 +167,23 @@ export default function Navbar() {
             <Link
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-amber-400 bg-amber-950/40 border border-amber-800/40"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-[#FF6B76] bg-red-950/40 border border-red-800/40"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>Super Administrador (Usuarios)</span>
             </Link>
           )}
 
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+          <div className="pt-2 border-t border-[#262626] flex items-center justify-between">
             {user ? (
               <div className="flex items-center justify-between w-full">
-                <span className="text-xs text-slate-300">{user.name}</span>
+                <span className="text-xs text-neutral-300">{user.name}</span>
                 <button
                   onClick={() => {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="text-xs text-red-400 font-semibold flex items-center gap-1"
+                  className="text-xs text-[#E51020] font-semibold flex items-center gap-1"
                 >
                   <LogOut className="w-3.5 h-3.5" /> Salir
                 </button>
@@ -191,7 +192,7 @@ export default function Navbar() {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 bg-cyan-600 text-white font-semibold rounded-lg text-xs"
+                className="w-full text-center py-2 bg-[#E51020] text-white font-bold rounded-lg text-xs"
               >
                 Acceso al Portal
               </Link>

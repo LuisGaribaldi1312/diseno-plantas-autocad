@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { QuizQuestion } from '@/lib/types';
-import { CheckCircle2, XCircle, Award, ArrowRight, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, Award, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface QuizModalProps {
@@ -14,7 +14,6 @@ interface QuizModalProps {
 }
 
 export default function QuizModal({
-  quizId,
   unitTitle,
   questions,
   onComplete,
@@ -43,7 +42,6 @@ export default function QuizModal({
       setCurrentIdx(currentIdx + 1);
       setIsAnswerSubmitted(false);
     } else {
-      // Calculate final score
       let correctCount = 0;
       questions.forEach(q => {
         if (selectedAnswers[q.id] === q.correctIndex) {
@@ -55,8 +53,8 @@ export default function QuizModal({
 
       if (finalScore >= 70) {
         confetti({
-          particleCount: 80,
-          spread: 60,
+          particleCount: 90,
+          spread: 65,
           origin: { y: 0.6 }
         });
       }
@@ -65,19 +63,19 @@ export default function QuizModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#151c28] border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-[#121212] border border-[#2D2D2D] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] red-border-glow">
         {/* Header */}
-        <div className="bg-[#1b2535] px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+        <div className="bg-[#181818] px-6 py-4 border-b border-[#2A2A2A] flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-wider">
+            <span className="text-[11px] font-mono font-bold text-[#E51020] uppercase tracking-wider">
               Evaluación Técnica & Normativa AutoCAD
             </span>
             <h3 className="text-base font-bold text-white">{unitTitle}</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white text-sm px-2 py-1 rounded hover:bg-slate-800 transition"
+            className="text-neutral-400 hover:text-white text-sm px-2.5 py-1 rounded-lg hover:bg-[#252525] transition"
           >
             ✕ Cerrar
           </button>
@@ -88,27 +86,27 @@ export default function QuizModal({
           {!quizFinished ? (
             <div className="space-y-6">
               {/* Progress indicator */}
-              <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className="flex items-center justify-between text-xs text-neutral-400">
                 <span>Pregunta {currentIdx + 1} de {questions.length}</span>
-                <span className="font-mono text-cyan-400">
+                <span className="font-mono text-[#E51020] font-bold">
                   {Math.round(((currentIdx) / questions.length) * 100)}%
                 </span>
               </div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-[#202020] h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-cyan-500 h-full transition-all duration-300"
+                  className="bg-[#E51020] h-full transition-all duration-300"
                   style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
                 />
               </div>
 
-              {/* Question Text */}
+              {/* Question */}
               <div className="space-y-2">
                 {currentQ.cadRelated && (
-                  <span className="text-[10px] font-mono uppercase bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded">
-                    AutoCAD & Normativa
+                  <span className="text-[10px] font-mono uppercase bg-red-950 text-[#FF4D5A] border border-red-800 px-2 py-0.5 rounded font-bold">
+                    AutoCAD & Normativa Oficial
                   </span>
                 )}
-                <h4 className="text-base font-semibold text-white leading-relaxed">
+                <h4 className="text-base font-bold text-white leading-relaxed">
                   {currentQ.question}
                 </h4>
               </div>
@@ -116,19 +114,19 @@ export default function QuizModal({
               {/* Options */}
               <div className="space-y-2.5">
                 {currentQ.options.map((option, idx) => {
-                  let btnStyle = "border-slate-700 bg-slate-800/60 text-slate-200 hover:bg-slate-800 hover:border-slate-600";
+                  let btnStyle = "border-[#2A2A2A] bg-[#1A1A1A] text-neutral-200 hover:bg-[#222222] hover:border-neutral-500";
 
                   if (selectedOpt === idx) {
-                    btnStyle = "border-cyan-500 bg-cyan-950/40 text-cyan-200 ring-1 ring-cyan-500";
+                    btnStyle = "border-[#E51020] bg-red-950/40 text-white ring-1 ring-[#E51020]";
                   }
 
                   if (isAnswerSubmitted) {
                     if (idx === currentQ.correctIndex) {
-                      btnStyle = "border-emerald-500 bg-emerald-950/50 text-emerald-200 ring-1 ring-emerald-500 font-semibold";
+                      btnStyle = "border-emerald-500 bg-emerald-950/60 text-white ring-1 ring-emerald-500 font-bold";
                     } else if (selectedOpt === idx) {
-                      btnStyle = "border-red-500 bg-red-950/50 text-red-200 ring-1 ring-red-500";
+                      btnStyle = "border-red-600 bg-red-950/70 text-red-200 ring-1 ring-red-600";
                     } else {
-                      btnStyle = "border-slate-800 bg-slate-900/40 text-slate-500";
+                      btnStyle = "border-[#222222] bg-[#111111] text-neutral-600";
                     }
                   }
 
@@ -151,11 +149,11 @@ export default function QuizModal({
                 })}
               </div>
 
-              {/* Explanation when submitted */}
+              {/* Explanation */}
               {isAnswerSubmitted && (
-                <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1">
-                  <span className="text-xs font-semibold text-cyan-400">💡 Explicación Técnica:</span>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                <div className="p-4 rounded-xl bg-[#181818] border border-[#2D2D2D] space-y-1">
+                  <span className="text-xs font-bold text-[#E51020]">💡 Explicación Técnica:</span>
+                  <p className="text-xs text-neutral-300 leading-relaxed">
                     {currentQ.explanation}
                   </p>
                 </div>
@@ -163,15 +161,15 @@ export default function QuizModal({
             </div>
           ) : (
             <div className="text-center py-8 space-y-4">
-              <Award className="w-16 h-16 text-yellow-400 mx-auto animate-bounce" />
-              <h4 className="text-xl font-bold text-white">¡Evaluación Finalizada!</h4>
-              <p className="text-slate-300 text-sm max-w-md mx-auto">
+              <Award className="w-16 h-16 text-[#E51020] mx-auto animate-bounce" />
+              <h4 className="text-2xl font-black text-white uppercase">¡Evaluación Finalizada!</h4>
+              <p className="text-neutral-300 text-sm max-w-md mx-auto">
                 Tus respuestas han sido evaluadas y tu calificación ha sido registrada permanentemente en el sistema de la Universidad Aztlán.
               </p>
               <div className="pt-2">
                 <button
                   onClick={onClose}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
+                  className="bg-[#E51020] hover:bg-[#C40816] text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shadow red-glow"
                 >
                   Volver al Módulo
                 </button>
@@ -182,24 +180,24 @@ export default function QuizModal({
 
         {/* Footer actions */}
         {!quizFinished && (
-          <div className="bg-[#1b2535] px-6 py-4 border-t border-slate-700 flex items-center justify-between">
-            <span className="text-xs text-slate-400">
-              {selectedOpt === undefined ? "Selecciona una opción para continuar" : "Opción seleccionada"}
+          <div className="bg-[#181818] px-6 py-4 border-t border-[#2A2A2A] flex items-center justify-between">
+            <span className="text-xs text-neutral-400">
+              {selectedOpt === undefined ? "Selecciona una opción para comprobar" : "Opción seleccionada"}
             </span>
             {!isAnswerSubmitted ? (
               <button
                 onClick={handleConfirmAnswer}
                 disabled={selectedOpt === undefined}
-                className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-5 py-2 rounded-lg transition"
+                className="bg-[#E51020] hover:bg-[#C40816] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold px-5 py-2.5 rounded-xl transition"
               >
                 Comprobar Respuesta
               </button>
             ) : (
               <button
                 onClick={handleNext}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2 rounded-lg transition flex items-center gap-1.5"
+                className="bg-white hover:bg-neutral-200 text-black text-xs font-black px-5 py-2.5 rounded-xl transition flex items-center gap-1.5"
               >
-                <span>{currentIdx + 1 < questions.length ? "Siguiente Pregunta" : "Ver Resultados"}</span>
+                <span>{currentIdx + 1 < questions.length ? "Siguiente Pregunta" : "Ver Calificación Final"}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}

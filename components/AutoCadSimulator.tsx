@@ -11,21 +11,17 @@ import {
 import { Practice } from '@/lib/types';
 import {
   Maximize2,
-  Minimize2,
   Grid,
   Download,
   Trash2,
-  Layers,
   HelpCircle,
   Play,
   CheckCircle2,
-  ChevronRight,
-  Flame,
   Award,
-  Undo2,
-  RotateCcw,
-  Sparkles,
-  Info
+  Info,
+  Layers,
+  Terminal,
+  Crosshair
 } from 'lucide-react';
 
 interface AutoCadSimulatorProps {
@@ -48,9 +44,9 @@ export default function AutoCadSimulator({
   const [commandInput, setCommandInput] = useState<string>('');
   const [commandHistory, setCommandHistory] = useState<string[]>([
     "Autodesk AutoCAD 2026 - Educational Edition [Universidad Aztlán - Clave 1057]",
-    "Inicializando entorno de dibujo para Diseño de Plantas Industriales...",
+    "Entorno de dibujo cargado: Tema AutoCAD Rojo / Negro / Blanco.",
     "Sistemas de capas cargado bajo norma ISO 13567. Unidades: Milímetros (Decimal).",
-    "Escribe un comando en la consola inferior (ej. LINE, RECTANG, BLOCK, TRIM, UNITS, HELP) o selecciona una herramienta."
+    "Escribe un comando en la consola (LINE, PLINE, RECTANG, BLOCK, TRIM, UNITS, HELP) o usa los botones del Ribbon."
   ]);
   const [mouseCoords, setMouseCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [gridEnabled, setGridEnabled] = useState<boolean>(true);
@@ -70,28 +66,27 @@ export default function AutoCadSimulator({
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [commandHistory]);
 
-  // Main Canvas Rendering Loop
+  // Main Canvas Rendering Loop (AutoCAD High Contrast Black, White & Red)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Canvas size
     const width = canvas.width;
     const height = canvas.height;
 
-    // 1. Dark CAD Background (#161b22)
-    ctx.fillStyle = '#111822';
+    // 1. Pure Pitch Black CAD Canvas Background (#080808)
+    ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Draw Grid (if enabled)
+    // 2. Technical Engineering Grid (Fine Gray & Subtle Red lines)
     if (gridEnabled) {
       ctx.lineWidth = 0.5;
       const gridSize = 25;
 
       for (let x = 0; x <= width; x += gridSize) {
-        ctx.strokeStyle = x % (gridSize * 4) === 0 ? '#1e293b' : '#17202e';
+        ctx.strokeStyle = x % (gridSize * 4) === 0 ? '#262626' : '#141414';
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
@@ -99,7 +94,7 @@ export default function AutoCadSimulator({
       }
 
       for (let y = 0; y <= height; y += gridSize) {
-        ctx.strokeStyle = y % (gridSize * 4) === 0 ? '#1e293b' : '#17202e';
+        ctx.strokeStyle = y % (gridSize * 4) === 0 ? '#262626' : '#141414';
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
@@ -107,32 +102,32 @@ export default function AutoCadSimulator({
       }
     }
 
-    // 3. Draw Origin Axes (UCS Icon in lower left corner)
-    ctx.strokeStyle = '#ef4444'; // X Axis Red
-    ctx.lineWidth = 2;
+    // 3. Origin UCS Axes Icon (AutoCAD Red for X, White for Y)
+    ctx.strokeStyle = '#E51020'; // X Axis Red
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(25, height - 25);
     ctx.lineTo(65, height - 25);
     ctx.stroke();
 
-    ctx.strokeStyle = '#22c55e'; // Y Axis Green
+    ctx.strokeStyle = '#FFFFFF'; // Y Axis White
     ctx.beginPath();
     ctx.moveTo(25, height - 25);
     ctx.lineTo(25, height - 65);
     ctx.stroke();
 
-    ctx.fillStyle = '#ef4444';
-    ctx.font = '10px monospace';
+    ctx.fillStyle = '#E51020';
+    ctx.font = 'bold 11px monospace';
     ctx.fillText('X', 70, height - 22);
-    ctx.fillStyle = '#22c55e';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillText('Y', 22, height - 70);
 
-    // 4. Render All CAD Entities
+    // 4. Render CAD Entities with High-Contrast White & AutoCAD Red
     entities.forEach(ent => {
       const layerObj = layers[ent.layer];
-      if (layerObj && !layerObj.visible) return; // Layer turned off
+      if (layerObj && !layerObj.visible) return;
 
-      const color = ent.color || layerObj?.color || '#ffffff';
+      const color = ent.color || layerObj?.color || '#FFFFFF';
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.lineWidth = 1.8;
@@ -151,14 +146,14 @@ export default function AutoCadSimulator({
         ctx.arc(ent.x, ent.y, ent.radius, 0, Math.PI * 2);
         ctx.stroke();
       } else if (ent.type === 'hatch' && ent.x !== undefined && ent.y !== undefined && ent.width && ent.height) {
-        // Hatch pattern ANSI31 (diagonal lines)
+        // Hatch pattern ANSI31 in AutoCAD Red
         ctx.save();
         ctx.beginPath();
         ctx.rect(ent.x, ent.y, ent.width, ent.height);
         ctx.clip();
-        ctx.strokeStyle = `${color}40`; // Transparent
-        ctx.lineWidth = 1;
-        const step = 12;
+        ctx.strokeStyle = '#E5102070';
+        ctx.lineWidth = 1.2;
+        const step = 10;
         for (let i = -ent.height; i < ent.width + ent.height; i += step) {
           ctx.beginPath();
           ctx.moveTo(ent.x + i, ent.y);
@@ -167,15 +162,16 @@ export default function AutoCadSimulator({
         }
         ctx.restore();
       } else if (ent.type === 'dimension' && ent.x1 !== undefined && ent.y1 !== undefined && ent.x2 !== undefined && ent.y2 !== undefined) {
-        // Dimension line with witness lines and arrows
+        // Dimension line
+        ctx.strokeStyle = '#9CA3AF';
         ctx.beginPath();
         ctx.moveTo(ent.x1, ent.y1);
         ctx.lineTo(ent.x2, ent.y2);
         ctx.stroke();
 
-        // Dimension text
+        // Dimension text in white
         if (ent.text) {
-          ctx.fillStyle = '#38bdf8';
+          ctx.fillStyle = '#FFFFFF';
           ctx.font = '11px sans-serif';
           const midX = (ent.x1 + ent.x2) / 2;
           const midY = (ent.y1 + ent.y2) / 2 - 4;
@@ -188,44 +184,37 @@ export default function AutoCadSimulator({
 
   }, [entities, layers, gridEnabled]);
 
-  // Render Industrial Block Symbols (Normative ISA-5.1 / P&ID / Equipment)
+  // Render Industrial Block Symbols (Normative ISA-5.1 / AutoCAD Red & White)
   const renderCadBlock = (ctx: CanvasRenderingContext2D, ent: CadEntity) => {
     const x = ent.x || 0;
     const y = ent.y || 0;
     const r = ent.radius || 25;
-    const color = ent.color || '#06b6d4';
+    const color = ent.color || '#E51020';
 
     ctx.save();
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
 
     if (ent.blockType === 'reactor') {
-      // Reactor vessel with dish heads and agitator
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.stroke();
-      // Agitator shaft
       ctx.beginPath();
       ctx.moveTo(x, y - r - 8);
       ctx.lineTo(x, y + r * 0.5);
       ctx.stroke();
-      // Agitator impeller blades
       ctx.beginPath();
       ctx.moveTo(x - 14, y + r * 0.4);
       ctx.lineTo(x + 14, y + r * 0.4);
       ctx.stroke();
-      // Motor on top
       ctx.strokeRect(x - 6, y - r - 16, 12, 8);
-      // TAG
       ctx.font = 'bold 11px monospace';
       ctx.fillText(ent.blockTag || 'R-101', x - 18, y + 4);
     } else if (ent.blockType === 'tank') {
-      // Storage tank with flat bottom and dished roof
       ctx.strokeRect(x - r, y - r, r * 2, r * 2);
       ctx.beginPath();
       ctx.arc(x, y - r, r, Math.PI, 0, false);
       ctx.stroke();
-      // Liquid level triangle symbol
       ctx.beginPath();
       ctx.moveTo(x - 8, y);
       ctx.lineTo(x + 8, y);
@@ -236,33 +225,26 @@ export default function AutoCadSimulator({
       ctx.lineTo(x + 4, y - 6);
       ctx.closePath();
       ctx.fill();
-      // TAG
       ctx.font = 'bold 10px monospace';
       ctx.fillText(ent.blockTag || 'TK-101', x - 20, y + r - 6);
     } else if (ent.blockType === 'pump') {
-      // Centrifugal pump with tangential discharge
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.stroke();
-      // Impeller eye
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fill();
-      // Tangential discharge line
       ctx.beginPath();
       ctx.moveTo(x, y - r);
       ctx.lineTo(x + r + 6, y - r);
       ctx.stroke();
-      // Motor/Base triangle
       ctx.beginPath();
       ctx.moveTo(x - r, y + r);
       ctx.lineTo(x + r, y + r);
       ctx.stroke();
-      // TAG
       ctx.font = 'bold 10px monospace';
       ctx.fillText(ent.blockTag || 'P-101', x - 16, y + r + 14);
     } else if (ent.blockType === 'valve') {
-      // Two opposing triangles with stem & pneumatic actuator (ISA-5.1)
       ctx.beginPath();
       ctx.moveTo(x - 12, y - 8);
       ctx.lineTo(x, y);
@@ -277,43 +259,39 @@ export default function AutoCadSimulator({
       ctx.closePath();
       ctx.stroke();
 
-      // Stem & Diaphragm Actuator
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x, y - 14);
       ctx.stroke();
-      // Half-circle actuator
       ctx.beginPath();
       ctx.arc(x, y - 14, 8, Math.PI, 0);
       ctx.closePath();
       ctx.stroke();
 
-      // TAG
       ctx.font = 'bold 10px monospace';
       ctx.fillText(ent.blockTag || 'FCV-101', x - 22, y + 20);
     } else if (ent.blockType === 'transmitter') {
-      // ISA-5.1 Instrument Bubble (circle with dividing line)
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.stroke();
-      // Panel mounted dividing line
       ctx.beginPath();
       ctx.moveTo(x - r, y);
       ctx.lineTo(x + r, y);
       ctx.stroke();
-      // TAG (ex: TIC / 101)
       ctx.font = 'bold 9px monospace';
       ctx.fillText(ent.blockTag || 'TIC', x - 10, y - 3);
       ctx.fillText('101', x - 8, y + 10);
     } else if (ent.blockType === 'title_block') {
-      // Institutional Cajetín Universidad Aztlán
+      // Official AutoCAD / Universidad Aztlán Cajetín
       const w = ent.width || 250;
       const h = ent.height || 110;
-      ctx.strokeStyle = '#e2e8f0';
+      ctx.strokeStyle = '#E51020';
+      ctx.lineWidth = 2;
       ctx.strokeRect(x, y, w, h);
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 1;
       ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
 
-      // Internal dividing lines
       ctx.beginPath();
       ctx.moveTo(x + 4, y + 36);
       ctx.lineTo(x + w - 4, y + 36);
@@ -324,14 +302,14 @@ export default function AutoCadSimulator({
       ctx.lineTo(x + w - 4, y + 72);
       ctx.stroke();
 
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 11px sans-serif';
       ctx.fillText('UNIVERSIDAD AZTLÁN', x + 12, y + 20);
-      ctx.fillStyle = '#06b6d4';
-      ctx.font = '9px monospace';
+      ctx.fillStyle = '#E51020';
+      ctx.font = 'bold 9px monospace';
       ctx.fillText('ING. INDUSTRIAL - DISEÑO DE PLANTAS', x + 12, y + 31);
 
-      ctx.fillStyle = '#e2e8f0';
+      ctx.fillStyle = '#E5E7EB';
       ctx.font = '9px sans-serif';
       ctx.fillText('PLANO: LAYOUT GENERAL & P&ID', x + 12, y + 50);
       ctx.fillText('CLAVE: 1057  |  ESCALA: 1:100', x + 12, y + 64);
@@ -342,7 +320,7 @@ export default function AutoCadSimulator({
     ctx.restore();
   };
 
-  // Mouse move handler for coordinates and crosshair
+  // Mouse move handler
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -350,7 +328,6 @@ export default function AutoCadSimulator({
     const rawX = e.clientX - rect.left;
     const rawY = e.clientY - rect.top;
 
-    // Optional snap to grid
     const snapSize = snapEnabled ? 5 : 1;
     const x = Math.round(rawX / snapSize) * snapSize;
     const y = Math.round(rawY / snapSize) * snapSize;
@@ -365,7 +342,6 @@ export default function AutoCadSimulator({
 
     const parts = raw.split(/\s+/);
     const cmd = parts[0].toUpperCase();
-    const args = parts.slice(1);
 
     const newHistory = [...commandHistory, `Command: _${raw}`];
     const newUsed = new Set(usedCommands);
@@ -377,7 +353,7 @@ export default function AutoCadSimulator({
 
     switch (cmd) {
       case 'UNITS':
-        feedback = "Drawing Units dialog: Metric system (mm). Precision: 0.00. Angle: Decimal Degrees.";
+        feedback = "Drawing Units dialog: Sistema Decimal (mm). Precisión: 0.00. Unidades calibradas.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'UNITS') {
           stepSatisfied = true;
         }
@@ -392,7 +368,7 @@ export default function AutoCadSimulator({
 
       case 'ZOOM':
       case 'Z':
-        feedback = "Regenerating model... Zoom All executed. Window extents fitted to display.";
+        feedback = "Regenerando modelo... Zoom All ejecutado. Vista ajustada al área total.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'ZOOM') {
           stepSatisfied = true;
         }
@@ -400,18 +376,18 @@ export default function AutoCadSimulator({
 
       case 'RECTANG':
       case 'REC':
-        // Draw a new rectangle on active layer
         const newRect: CadEntity = {
           id: `rect-${Date.now()}`,
           type: 'rect',
           layer: activeLayer,
+          color: '#FFFFFF',
           x: 200,
           y: 280,
           width: 160,
           height: 100
         };
         setEntities(prev => [...prev, newRect]);
-        feedback = "Specify first corner point or [Chamfer/Elevation/Fillet/Thickness/Width]: Rectangle entity created.";
+        feedback = "RECTANG: Entidad rectangular creada en la capa " + activeLayer;
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'RECTANG') {
           stepSatisfied = true;
         }
@@ -419,18 +395,18 @@ export default function AutoCadSimulator({
 
       case 'LINE':
       case 'L':
-        // Add a line entity
         const newLine: CadEntity = {
           id: `line-${Date.now()}`,
           type: 'line',
           layer: activeLayer,
+          color: '#FFFFFF',
           x1: 200,
           y1: 200,
           x2: 350,
           y2: 200
         };
         setEntities(prev => [...prev, newLine]);
-        feedback = "Specify first point: Specify next point: Line entity drawn on layer " + activeLayer;
+        feedback = "LINE: Segmento de línea trazado en capa " + activeLayer;
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'LINE') {
           stepSatisfied = true;
         }
@@ -438,19 +414,18 @@ export default function AutoCadSimulator({
 
       case 'PLINE':
       case 'PL':
-        // Add polyline outline
         const newPline: CadEntity = {
           id: `pline-${Date.now()}`,
           type: 'rect',
           layer: '01_MUROS',
-          color: '#eab308',
+          color: '#FFFFFF',
           x: 90,
           y: 90,
           width: 480,
           height: 330
         };
         setEntities(prev => [...prev, newPline]);
-        feedback = "PLINE: Polyline boundary closed. Width = 0.25m perimetric structural wall generated.";
+        feedback = "PLINE: Polilínea perimetral cerrada. Ancho = 0.30 m de muro estructural generado.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'PLINE') {
           stepSatisfied = true;
         }
@@ -458,7 +433,7 @@ export default function AutoCadSimulator({
 
       case 'OFFSET':
       case 'O':
-        feedback = "Specify offset distance <0.30>: Select object to offset: Concentric wall offset created at 0.30m.";
+        feedback = "OFFSET: Desfase concéntrico creado a 0.30 m de distancia.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'OFFSET') {
           stepSatisfied = true;
         }
@@ -466,7 +441,7 @@ export default function AutoCadSimulator({
 
       case 'TRIM':
       case 'TR':
-        feedback = "Current settings: Projection=UCS, Edge=Extend. Select cutting edges... Opening for loading docks trimmed.";
+        feedback = "TRIM: Aristas de corte procesadas. Vanos para andenes de carga abiertos limpiamente.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'TRIM') {
           stepSatisfied = true;
         }
@@ -474,7 +449,7 @@ export default function AutoCadSimulator({
 
       case 'FILLET':
       case 'F':
-        feedback = "Current settings: Mode = TRIM, Radius = 2.0000. Corner fillet applied for forklift clearance.";
+        feedback = "FILLET: Radio de curvatura 2.00 m aplicado en esquina de pasillo de montacargas.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'FILLET') {
           stepSatisfied = true;
         }
@@ -482,7 +457,7 @@ export default function AutoCadSimulator({
 
       case 'ARRAY':
       case 'ARRAYRECT':
-        feedback = "Select objects: Associative Array created. 2 rows x 3 columns. Spacing: 5.0m. Total 6 workstations.";
+        feedback = "ARRAYRECT: Matriz rectangular asociativa generada (2 filas x 3 columnas).";
         if (practice && (practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'ARRAY' || practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'ARRAYRECT')) {
           stepSatisfied = true;
         }
@@ -490,12 +465,11 @@ export default function AutoCadSimulator({
 
       case 'HATCH':
       case 'H':
-        // Add hatch entity
         const newHatch: CadEntity = {
           id: `hatch-${Date.now()}`,
           type: 'hatch',
           layer: '07_SOMBREADO',
-          color: '#a855f7',
+          color: '#E51020',
           x: 230,
           y: 290,
           width: 120,
@@ -503,7 +477,7 @@ export default function AutoCadSimulator({
           pattern: 'ANSI31'
         };
         setEntities(prev => [...prev, newHatch]);
-        feedback = "Pick internal point: Analyzing boundaries... Hatch pattern ANSI31 applied (Safety hazard zoning).";
+        feedback = "HATCH: Patrón ANSI31 aplicado en área de almacenamiento de riesgo químico.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'HATCH') {
           stepSatisfied = true;
         }
@@ -511,7 +485,7 @@ export default function AutoCadSimulator({
 
       case 'BLOCK':
       case 'B':
-        feedback = "Block definition dialog: Block 'REACTOR_R101' created with insertion point at (0,0). Attributes attached.";
+        feedback = "BLOCK: Bloque 'REACTOR_R101' definido con punto de inserción central.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'BLOCK') {
           stepSatisfied = true;
         }
@@ -519,26 +493,26 @@ export default function AutoCadSimulator({
 
       case 'INSERT':
       case 'I':
-        // Insert a new pump or equipment block
         const newBlock: CadEntity = {
           id: `blk-${Date.now()}`,
           type: 'block',
           blockType: 'pump',
           blockTag: 'P-103',
           layer: '02_EQUIPOS',
+          color: '#E51020',
           x: 480,
           y: 220,
           radius: 16
         };
         setEntities(prev => [...prev, newBlock]);
-        feedback = "Specify insertion point for block PUMP_ISO: Block inserted at (480, 220). Tag: P-103.";
+        feedback = "INSERT: Bloque de bomba centrífuga P-103 insertado en coordenadas designadas.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'INSERT') {
           stepSatisfied = true;
         }
         break;
 
       case 'ATTDEF':
-        feedback = "Attribute Definition: Tag = EQUIP_TAG, Prompt = 'Ingrese el TAG del equipo:', Default = 'R-101'.";
+        feedback = "ATTDEF: Definición de atributo creada. Tag='EQUIP_TAG', Default='R-101'.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'ATTDEF') {
           stepSatisfied = true;
         }
@@ -546,14 +520,14 @@ export default function AutoCadSimulator({
 
       case 'LAYER':
       case 'LA':
-        feedback = "Layer Properties Manager: 8 layers loaded according to ISO 13567. Current layer: " + activeLayer;
+        feedback = "LAYER: 8 capas cargadas conforme al estándar ISO 13567. Capa actual: " + activeLayer;
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'LAYER') {
           stepSatisfied = true;
         }
         break;
 
       case 'LAYOUT':
-        feedback = "Switching to Paper Space (Layout 1). Drawing format: ARCH D (24x36\"). Scale 1:1 on sheet.";
+        feedback = "LAYOUT: Cambio a Espacio Papel (Layout 1). Formato de impresión ARCH D.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'LAYOUT') {
           stepSatisfied = true;
         }
@@ -561,7 +535,7 @@ export default function AutoCadSimulator({
 
       case 'MVIEW':
       case 'MV':
-        feedback = "Specify corner of viewport: Floating Model Space Viewport created. Ready for scale adjustment.";
+        feedback = "MVIEW: Ventana gráfica flotante creada en la hoja de presentación.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'MVIEW') {
           stepSatisfied = true;
         }
@@ -569,7 +543,7 @@ export default function AutoCadSimulator({
 
       case 'DIMSTYLE':
       case 'D':
-        feedback = "Dimension Style Manager: Active style 'PLANTA_AZTLAN_1_100'. Arrow size: 2.5mm, Text height: 3.0mm.";
+        feedback = "DIMSTYLE: Estilo de cota 'PLANTA_AZTLAN_1_100' activo.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'DIMSTYLE') {
           stepSatisfied = true;
         }
@@ -578,28 +552,28 @@ export default function AutoCadSimulator({
       case 'DIM':
       case 'DIMLINEAR':
       case 'DIMCONTINUE':
-        feedback = "Specify first extension line origin: Linear continuous dimension attached. Value: 80.00m.";
+        feedback = "DIM: Cota lineal normalizada colocada en el plano. Valor: 80.00 m.";
         if (practice && (practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'DIMLINEAR' || practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'DIMCONTINUE' || practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'DIM')) {
           stepSatisfied = true;
         }
         break;
 
       case 'PLOT':
-        feedback = "Plot dialog: Printer = 'AutoCAD PDF (General Documentation)'. Quality: 600 DPI monochrome.ctb. Ready to publish.";
+        feedback = "PLOT: Configuración de trazador 'AutoCAD PDF' lista con monochrome.ctb.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'PLOT') {
           stepSatisfied = true;
         }
         break;
 
       case 'AREA':
-        feedback = "Area = 4000.0000 m² (4.0000 ha), Perimeter = 260.0000 m. Net industrial floor space calculated.";
+        feedback = "AREA: Área calculada = 4000.0000 m², Perímetro = 260.0000 m.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'AREA') {
           stepSatisfied = true;
         }
         break;
 
       case 'BCOUNT':
-        feedback = "Block Count Summary: 2x REACTOR, 2x TANK_STORAGE, 2x CENTRIFUGAL_PUMP, 1x CONTROL_VALVE, 1x TITLE_BLOCK.";
+        feedback = "BCOUNT: 2x REACTOR, 2x TANK_STORAGE, 2x CENTRIFUGAL_PUMP, 1x CONTROL_VALVE.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'BCOUNT') {
           stepSatisfied = true;
         }
@@ -607,39 +581,31 @@ export default function AutoCadSimulator({
 
       case 'DATAEXTRACTION':
       case 'EATTEXT':
-        feedback = "Data Extraction Wizard: 7 equipment objects processed. 14 attributes mapped to Bill of Materials (BOM).";
+        feedback = "DATAEXTRACTION: 7 componentes extraídos hacia el Catálogo de Conceptos.";
         if (practice && (practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'DATAEXTRACTION' || practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'EATTEXT')) {
           stepSatisfied = true;
         }
         break;
 
       case 'TABLE':
-        feedback = "Table entity inserted: 6 columns x 8 rows linked with process equipment count and unit costs.";
+        feedback = "TABLE: Tabla paramétrica insertada con el resumen cuantitativo de obra.";
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'TABLE') {
-          stepSatisfied = true;
-        }
-        break;
-
-      case 'XREF':
-      case 'XR':
-        feedback = "External References Manager: Attached 'TOPOGRAFIA_TERRENO_AZTLAN.dwg' as Overlay at (0,0).";
-        if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === 'XREF') {
           stepSatisfied = true;
         }
         break;
 
       case 'HELP':
       case '?':
-        feedback = "Comandos disponibles: UNITS, LIMITS, ZOOM, LINE, PLINE, RECTANG, OFFSET, TRIM, FILLET, ARRAY, HATCH, BLOCK, INSERT, ATTDEF, LAYER, LAYOUT, MVIEW, DIMSTYLE, DIMLINEAR, PLOT, AREA, BCOUNT, DATAEXTRACTION, TABLE, CLEAR.";
+        feedback = "Comandos: UNITS, LIMITS, ZOOM, LINE, PLINE, RECTANG, OFFSET, TRIM, FILLET, ARRAY, HATCH, BLOCK, INSERT, ATTDEF, LAYER, LAYOUT, MVIEW, DIMSTYLE, DIMLINEAR, PLOT, AREA, BCOUNT, DATAEXTRACTION, TABLE, CLEAR.";
         break;
 
       case 'CLEAR':
         setEntities([]);
-        feedback = "All entities erased from model space.";
+        feedback = "Todas las entidades borradas del espacio modelo.";
         break;
 
       default:
-        feedback = `Comando '${cmd}' reconocido en el entorno CAD de Diseño de Plantas. Parámetros aceptados.`;
+        feedback = `Comando '${cmd}' ejecutado con éxito en el entorno AutoCAD.`;
         if (practice && practice.steps[currentStepIdx]?.cadCommand.toUpperCase() === cmd) {
           stepSatisfied = true;
         }
@@ -677,95 +643,93 @@ export default function AutoCadSimulator({
     executeCommand(commandInput);
   };
 
-  // Quick Action Buttons
   const triggerQuickTool = (cmd: string) => {
     setCommandInput(cmd);
     executeCommand(cmd);
   };
 
-  // Export CAD Canvas as Image
   const handleExportPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const url = canvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Plano_Diseno_Plantas_AutoCAD_${Date.now()}.png`;
+    a.download = `Plano_AutoCAD_Diseno_Plantas_${Date.now()}.png`;
     a.click();
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0d1117] text-slate-100 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
-      {/* 1. TOP CAD RIBBON & TOOLBAR */}
-      <div className="bg-[#161f2c] border-b border-slate-700 px-4 py-2 flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-col h-full bg-[#080808] text-white rounded-2xl overflow-hidden border border-[#2E2E2E] shadow-2xl">
+      {/* 1. TOP CAD RIBBON & TOOLBAR (AutoCAD Red / Charcoal / White) */}
+      <div className="bg-[#121212] border-b border-[#262626] px-4 py-2 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-          <span className="font-mono font-bold text-xs tracking-wider text-cyan-400">
-            AUTOCAD 2026 PLANT VIRTUAL LAB
+          <div className="w-3 h-3 rounded-full bg-[#E51020] animate-pulse"></div>
+          <span className="font-mono font-black text-xs tracking-wider text-[#E51020]">
+            AUTOCAD 2026 PLANT DESIGN LAB
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+          <span className="text-[11px] px-2 py-0.5 rounded bg-[#1C1C1C] text-neutral-300 border border-[#333333]">
             Universidad Aztlán
           </span>
         </div>
 
         {/* Ribbon Tabs */}
-        <div className="flex items-center bg-slate-800/80 p-0.5 rounded-lg border border-slate-700">
+        <div className="flex items-center bg-[#181818] p-1 rounded-xl border border-[#2A2A2A]">
           <button
             onClick={() => setActiveTab('draw')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === 'draw' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+              activeTab === 'draw' ? 'bg-[#E51020] text-white shadow' : 'text-neutral-400 hover:text-white'
             }`}
           >
             Dibujo (Draw)
           </button>
           <button
             onClick={() => setActiveTab('modify')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === 'modify' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+              activeTab === 'modify' ? 'bg-[#E51020] text-white shadow' : 'text-neutral-400 hover:text-white'
             }`}
           >
-            Edición (Modify)
+            Modificar (Modify)
           </button>
           <button
             onClick={() => setActiveTab('blocks')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === 'blocks' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+              activeTab === 'blocks' ? 'bg-[#E51020] text-white shadow' : 'text-neutral-400 hover:text-white'
             }`}
           >
             Bloques P&ID
           </button>
           <button
             onClick={() => setActiveTab('layers')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === 'layers' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+              activeTab === 'layers' ? 'bg-[#E51020] text-white shadow' : 'text-neutral-400 hover:text-white'
             }`}
           >
             Capas (ISO 13567)
           </button>
           <button
             onClick={() => setActiveTab('annotate')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === 'annotate' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+              activeTab === 'annotate' ? 'bg-[#E51020] text-white shadow' : 'text-neutral-400 hover:text-white'
             }`}
           >
             Anotación & Layout
           </button>
         </div>
 
-        {/* Global Action Buttons */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportPNG}
-            title="Descargar plano en PNG"
-            className="flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded border border-slate-700 transition"
+            title="Exportar plano en PNG"
+            className="flex items-center gap-1 text-xs bg-[#1A1A1A] hover:bg-[#262626] text-white px-3 py-1.5 rounded-lg border border-[#333333] transition"
           >
-            <Download className="w-3.5 h-3.5 text-cyan-400" />
+            <Download className="w-3.5 h-3.5 text-[#E51020]" />
             <span>Exportar Plano</span>
           </button>
           <button
             onClick={() => triggerQuickTool('CLEAR')}
             title="Limpiar espacio de trabajo"
-            className="flex items-center gap-1 text-xs bg-red-950/60 hover:bg-red-900/80 text-red-300 px-2.5 py-1.5 rounded border border-red-800 transition"
+            className="flex items-center gap-1 text-xs bg-red-950/60 hover:bg-red-900/80 text-red-200 px-3 py-1.5 rounded-lg border border-red-800 transition"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Limpiar</span>
@@ -773,44 +737,44 @@ export default function AutoCadSimulator({
         </div>
       </div>
 
-      {/* 2. SECONDARY TOOLS BAR (Contextual by Tab) */}
-      <div className="bg-[#1a2332] px-4 py-2 border-b border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+      {/* 2. SECONDARY TOOLS BAR */}
+      <div className="bg-[#181818] px-4 py-2 border-b border-[#2A2A2A] flex flex-wrap items-center gap-2 text-xs">
         {activeTab === 'draw' && (
           <>
-            <span className="text-slate-400 font-mono text-[11px] mr-1">Herramientas de Trazo:</span>
+            <span className="text-neutral-400 font-mono text-[11px] mr-1">Trazado Geométrico:</span>
             <button
               onClick={() => triggerQuickTool('LINE')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Línea (L)
             </button>
             <button
               onClick={() => triggerQuickTool('PLINE')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Polilínea (PL)
             </button>
             <button
               onClick={() => triggerQuickTool('RECTANG')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Rectángulo (REC)
             </button>
             <button
               onClick={() => triggerQuickTool('CIRCLE')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Círculo (C)
             </button>
             <button
               onClick={() => triggerQuickTool('HATCH')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Sombreado / Hatch (H)
             </button>
             <button
               onClick={() => triggerQuickTool('LIMITS')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Límites (LIMITS)
             </button>
@@ -819,34 +783,34 @@ export default function AutoCadSimulator({
 
         {activeTab === 'modify' && (
           <>
-            <span className="text-slate-400 font-mono text-[11px] mr-1">Modificación Geométrica:</span>
+            <span className="text-neutral-400 font-mono text-[11px] mr-1">Edición y Precisión:</span>
             <button
               onClick={() => triggerQuickTool('OFFSET')}
-              className="bg-slate-800 hover:bg-amber-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Desfase (O)
             </button>
             <button
               onClick={() => triggerQuickTool('TRIM')}
-              className="bg-slate-800 hover:bg-amber-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Recortar (TR)
             </button>
             <button
               onClick={() => triggerQuickTool('FILLET')}
-              className="bg-slate-800 hover:bg-amber-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Empalme (F)
             </button>
             <button
               onClick={() => triggerQuickTool('ARRAYRECT')}
-              className="bg-slate-800 hover:bg-amber-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Matriz Rectangular
             </button>
             <button
               onClick={() => triggerQuickTool('MOVE')}
-              className="bg-slate-800 hover:bg-amber-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Desplazar (M)
             </button>
@@ -855,7 +819,7 @@ export default function AutoCadSimulator({
 
         {activeTab === 'blocks' && (
           <>
-            <span className="text-slate-400 font-mono text-[11px] mr-1">Equipos & Simbología ISA-5.1:</span>
+            <span className="text-neutral-400 font-mono text-[11px] mr-1">Simbología ISA-5.1:</span>
             <button
               onClick={() => {
                 const b: CadEntity = {
@@ -864,6 +828,7 @@ export default function AutoCadSimulator({
                   blockType: 'reactor',
                   blockTag: 'R-103',
                   layer: '02_EQUIPOS',
+                  color: '#E51020',
                   x: 320,
                   y: 280,
                   radius: 36
@@ -871,7 +836,7 @@ export default function AutoCadSimulator({
                 setEntities(prev => [...prev, b]);
                 executeCommand('INSERT REACTOR');
               }}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               + Reactor Químico
             </button>
@@ -883,6 +848,7 @@ export default function AutoCadSimulator({
                   blockType: 'tank',
                   blockTag: 'TK-203',
                   layer: '02_EQUIPOS',
+                  color: '#FFFFFF',
                   x: 140,
                   y: 320,
                   radius: 28
@@ -890,7 +856,7 @@ export default function AutoCadSimulator({
                 setEntities(prev => [...prev, b]);
                 executeCommand('INSERT TANK');
               }}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               + Tanque Almacenamiento
             </button>
@@ -902,6 +868,7 @@ export default function AutoCadSimulator({
                   blockType: 'pump',
                   blockTag: 'P-103',
                   layer: '02_EQUIPOS',
+                  color: '#E51020',
                   x: 230,
                   y: 280,
                   radius: 14
@@ -909,7 +876,7 @@ export default function AutoCadSimulator({
                 setEntities(prev => [...prev, b]);
                 executeCommand('INSERT PUMP');
               }}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               + Bomba Centrífuga
             </button>
@@ -921,6 +888,7 @@ export default function AutoCadSimulator({
                   blockType: 'valve',
                   blockTag: 'TCV-102',
                   layer: '04_INSTRUMENTACION',
+                  color: '#E51020',
                   x: 320,
                   y: 350,
                   radius: 12
@@ -928,13 +896,13 @@ export default function AutoCadSimulator({
                 setEntities(prev => [...prev, b]);
                 executeCommand('INSERT VALVE');
               }}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               + Válvula Control (FCV)
             </button>
             <button
               onClick={() => triggerQuickTool('ATTDEF')}
-              className="bg-slate-800 hover:bg-cyan-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Definir Atributo (ATTDEF)
             </button>
@@ -943,11 +911,11 @@ export default function AutoCadSimulator({
 
         {activeTab === 'layers' && (
           <div className="flex items-center gap-2">
-            <span className="text-slate-400 font-mono text-[11px]">Capa Activa:</span>
+            <span className="text-neutral-400 font-mono text-[11px]">Capa Activa:</span>
             <select
               value={activeLayer}
               onChange={e => setActiveLayer(e.target.value)}
-              className="bg-slate-800 text-slate-200 text-xs rounded px-2 py-1 border border-slate-700 focus:outline-none"
+              className="bg-[#242424] text-white text-xs rounded-lg px-3 py-1 border border-[#3A3A3A] focus:outline-none"
             >
               {Object.values(layers).map(l => (
                 <option key={l.name} value={l.name}>
@@ -957,7 +925,7 @@ export default function AutoCadSimulator({
             </select>
             <button
               onClick={() => triggerQuickTool('LAYER')}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#333333] text-white px-3 py-1 rounded-lg border border-[#3A3A3A]"
             >
               Admin Capas
             </button>
@@ -966,34 +934,34 @@ export default function AutoCadSimulator({
 
         {activeTab === 'annotate' && (
           <>
-            <span className="text-slate-400 font-mono text-[11px] mr-1">Anotación & Layout:</span>
+            <span className="text-neutral-400 font-mono text-[11px] mr-1">Presentación & Acotado:</span>
             <button
               onClick={() => triggerQuickTool('DIMLINEAR')}
-              className="bg-slate-800 hover:bg-sky-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Cota Lineal (DLI)
             </button>
             <button
               onClick={() => triggerQuickTool('DIMCONTINUE')}
-              className="bg-slate-800 hover:bg-sky-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Cota Continua (DCO)
             </button>
             <button
               onClick={() => triggerQuickTool('LAYOUT')}
-              className="bg-slate-800 hover:bg-sky-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Espacio Papel (Layout)
             </button>
             <button
               onClick={() => triggerQuickTool('MVIEW')}
-              className="bg-slate-800 hover:bg-sky-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Ventana Gráfica (MVIEW)
             </button>
             <button
               onClick={() => triggerQuickTool('PLOT')}
-              className="bg-slate-800 hover:bg-sky-600 text-slate-200 px-2.5 py-1 rounded border border-slate-700"
+              className="bg-[#242424] hover:bg-[#E51020] text-white px-3 py-1 rounded border border-[#3A3A3A] transition"
             >
               Trazar a PDF (PLOT)
             </button>
@@ -1001,47 +969,46 @@ export default function AutoCadSimulator({
         )}
       </div>
 
-      {/* 3. MAIN WORKSPACE (Canvas + Guided Practice Sidebar) */}
+      {/* 3. MAIN WORKSPACE (Canvas + Guided Mission Sidebar) */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        {/* Canvas Workspace */}
-        <div className="flex-1 relative overflow-hidden bg-[#111822] flex items-center justify-center p-2">
+        {/* Canvas Workspace in Pitch Black */}
+        <div className="flex-1 relative overflow-hidden bg-[#0A0A0A] flex items-center justify-center p-2">
           <canvas
             ref={canvasRef}
             width={880}
             height={590}
             onMouseMove={handleMouseMove}
             onClick={() => {
-              // Canvas click feedback
               if (commandInput) {
                 executeCommand(commandInput);
               }
             }}
-            className="w-full h-full max-h-[590px] border border-slate-800 rounded bg-[#111822] cursor-crosshair shadow-inner"
+            className="w-full h-full max-h-[590px] border border-[#222222] rounded-xl bg-[#080808] cursor-crosshair shadow-inner"
           />
 
-          {/* Coordinate HUD (Floating bottom-left in model space) */}
-          <div className="absolute bottom-4 left-4 bg-slate-900/90 text-cyan-400 font-mono text-[11px] px-3 py-1 rounded border border-slate-700/80 backdrop-blur-sm shadow flex items-center gap-3">
-            <span>X: {mouseCoords.x.toFixed(2)} mm</span>
-            <span className="text-slate-600">|</span>
-            <span>Y: {mouseCoords.y.toFixed(2)} mm</span>
-            <span className="text-slate-600">|</span>
-            <span>Z: 0.00</span>
+          {/* Coordinate HUD (Bottom-left) */}
+          <div className="absolute bottom-4 left-4 bg-[#141414]/90 text-white font-mono text-[11px] px-3 py-1 rounded-lg border border-[#333333] shadow flex items-center gap-3">
+            <span className="text-[#E51020] font-bold">X: {mouseCoords.x.toFixed(2)} mm</span>
+            <span className="text-neutral-600">|</span>
+            <span className="text-white font-bold">Y: {mouseCoords.y.toFixed(2)} mm</span>
+            <span className="text-neutral-600">|</span>
+            <span className="text-neutral-400">Z: 0.00</span>
           </div>
 
           {/* Floating HUD toggle controls */}
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-lg border border-slate-700 text-xs backdrop-blur-sm">
+          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-[#141414]/90 p-1.5 rounded-xl border border-[#333333] text-xs">
             <button
               onClick={() => setGridEnabled(!gridEnabled)}
               title="Rejilla GRID (F7)"
-              className={`p-1.5 rounded transition ${gridEnabled ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
+              className={`p-1.5 rounded-lg transition ${gridEnabled ? 'bg-[#E51020] text-white' : 'text-neutral-400'}`}
             >
               <Grid className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setOrthoEnabled(!orthoEnabled)}
               title="Modo Ortogonal ORTHO (F8)"
-              className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] transition ${
-                orthoEnabled ? 'bg-amber-600 text-white' : 'text-slate-400'
+              className={`px-2 py-0.5 rounded-lg font-mono font-bold text-[10px] transition ${
+                orthoEnabled ? 'bg-[#E51020] text-white' : 'text-neutral-400'
               }`}
             >
               ORTHO
@@ -1049,43 +1016,42 @@ export default function AutoCadSimulator({
             <button
               onClick={() => triggerQuickTool('ZOOM ALL')}
               title="Ajustar Zoom (Z A)"
-              className="p-1.5 rounded text-slate-300 hover:text-white"
+              className="p-1.5 rounded-lg text-neutral-300 hover:text-white"
             >
               <Maximize2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Guided Practice Step Sidebar (If practice is active) */}
+        {/* Guided Practice Sidebar */}
         {practice && (
-          <div className="w-full lg:w-96 bg-[#151c28] border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col h-auto lg:h-full overflow-y-auto">
-            <div className="p-4 border-b border-slate-700 bg-slate-800/40">
+          <div className="w-full lg:w-96 bg-[#111111] border-t lg:border-t-0 lg:border-l border-[#262626] flex flex-col h-auto lg:h-full overflow-y-auto">
+            <div className="p-4 border-b border-[#262626] bg-[#161616]">
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-cyan-900 text-cyan-300 border border-cyan-700">
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-red-950 text-[#FF4D5A] border border-red-800">
                   {practice.level.toUpperCase()}
                 </span>
-                <span className="text-xs text-slate-400">⏱ {practice.estimatedMinutes} min</span>
+                <span className="text-xs text-neutral-400">⏱ {practice.estimatedMinutes} min</span>
               </div>
               <h3 className="font-bold text-sm text-white leading-tight">{practice.title}</h3>
-              <p className="text-xs text-slate-400 mt-1">{practice.subtitle}</p>
+              <p className="text-xs text-neutral-400 mt-1">{practice.subtitle}</p>
             </div>
 
-            {/* Objective & Norm */}
-            <div className="p-3 bg-slate-900/60 border-b border-slate-800 text-xs space-y-1.5">
-              <div className="flex items-start gap-1.5 text-slate-300">
-                <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div className="p-3 bg-[#141414] border-b border-[#262626] text-xs space-y-1.5">
+              <div className="flex items-start gap-1.5 text-neutral-300">
+                <Info className="w-4 h-4 text-[#E51020] shrink-0 mt-0.5" />
                 <p><span className="font-semibold text-white">Objetivo:</span> {practice.objective}</p>
               </div>
-              <div className="text-[11px] text-amber-300/90 font-mono">
+              <div className="text-[11px] text-[#FF6B76] font-mono">
                 📌 Norma: {practice.normativeReference}
               </div>
             </div>
 
             {/* Steps Checklist */}
             <div className="p-4 flex-1 space-y-3">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 mb-2">
                 <span>PASOS DE LA PRÁCTICA</span>
-                <span className="text-cyan-400">
+                <span className="text-[#E51020] font-mono">
                   {completedSteps.length} / {practice.steps.length} completados
                 </span>
               </div>
@@ -1097,12 +1063,12 @@ export default function AutoCadSimulator({
                 return (
                   <div
                     key={st.stepNumber}
-                    className={`p-3 rounded-lg border transition ${
+                    className={`p-3 rounded-xl border transition ${
                       isCurrent
-                        ? 'bg-cyan-950/40 border-cyan-500 shadow-md ring-1 ring-cyan-500/30'
+                        ? 'bg-[#1C1213] border-[#E51020] shadow-md ring-1 ring-[#E51020]/40'
                         : isDone
-                        ? 'bg-slate-800/30 border-emerald-800/60 text-slate-300'
-                        : 'bg-slate-900/40 border-slate-800 text-slate-500'
+                        ? 'bg-[#141414] border-emerald-800/60 text-neutral-300'
+                        : 'bg-[#121212] border-[#222222] text-neutral-500'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -1112,7 +1078,7 @@ export default function AutoCadSimulator({
                         ) : (
                           <div
                             className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                              isCurrent ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400'
+                              isCurrent ? 'bg-[#E51020] text-white' : 'bg-[#222222] text-neutral-400'
                             }`}
                           >
                             {st.stepNumber}
@@ -1122,24 +1088,24 @@ export default function AutoCadSimulator({
                           Paso {st.stepNumber}
                         </span>
                       </div>
-                      <span className="font-mono text-[11px] bg-slate-800 px-1.5 py-0.5 rounded text-cyan-300">
+                      <span className="font-mono text-[11px] bg-[#1C1C1C] px-1.5 py-0.5 rounded text-[#FF6B76]">
                         {st.cadCommand}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                    <p className="text-xs text-neutral-300 mt-2 leading-relaxed">
                       {st.instruction}
                     </p>
 
                     {isCurrent && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-800">
-                        <div className="text-[11px] text-amber-400/90 flex items-start gap-1">
+                      <div className="mt-2.5 pt-2 border-t border-[#2A2A2A]">
+                        <div className="text-[11px] text-amber-300/90 flex items-start gap-1">
                           <HelpCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                           <span>{st.hint}</span>
                         </div>
                         <button
                           onClick={() => triggerQuickTool(st.cadCommand)}
-                          className="mt-2 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-1 px-2 rounded text-xs transition flex items-center justify-center gap-1.5 shadow"
+                          className="mt-2 w-full bg-[#E51020] hover:bg-[#C40816] text-white font-bold py-1.5 px-2 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow"
                         >
                           <Play className="w-3 h-3 fill-current" />
                           <span>Ejecutar {st.cadCommand}</span>
@@ -1152,11 +1118,11 @@ export default function AutoCadSimulator({
 
               {/* Completion Banner */}
               {missionComplete && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-900/60 to-cyan-900/40 border border-emerald-500/60 text-center space-y-2 mt-4 animate-in fade-in zoom-in duration-300">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-red-950/70 to-neutral-900 border border-[#E51020] text-center space-y-2 mt-4 animate-in fade-in zoom-in duration-300">
                   <Award className="w-10 h-10 text-yellow-400 mx-auto" />
-                  <h4 className="font-bold text-sm text-emerald-300">¡Práctica Virtual Completada!</h4>
-                  <p className="text-xs text-slate-300">
-                    Has aplicado los comandos normativos de AutoCAD con éxito. Tu calificación ha sido registrada al 100%.
+                  <h4 className="font-bold text-sm text-white">¡Práctica de AutoCAD Completada!</h4>
+                  <p className="text-xs text-neutral-300">
+                    Has completado con éxito la práctica virtual. Tu calificación ha sido registrada al 100%.
                   </p>
                   <div className="pt-2">
                     <span className="inline-block text-xs font-mono bg-emerald-950 text-emerald-300 px-3 py-1 rounded-full border border-emerald-700">
@@ -1170,19 +1136,19 @@ export default function AutoCadSimulator({
         )}
       </div>
 
-      {/* 4. AUTOCAD COMMAND LINE CONSOLE & PROMPT */}
-      <div className="bg-[#0b0f14] border-t border-slate-800 p-2 font-mono">
+      {/* 4. AUTOCAD COMMAND LINE CONSOLE & PROMPT (Black & Red) */}
+      <div className="bg-[#0A0A0A] border-t border-[#262626] p-2 font-mono">
         {/* Terminal Log */}
-        <div className="h-20 overflow-y-auto text-[11px] leading-relaxed text-slate-300 px-2 space-y-0.5 scrollbar-thin">
+        <div className="h-20 overflow-y-auto text-[11px] leading-relaxed text-neutral-300 px-2 space-y-0.5 scrollbar-thin">
           {commandHistory.slice(-6).map((line, i) => (
             <div
               key={i}
               className={
                 line.startsWith('Command:')
-                  ? 'text-cyan-400 font-semibold'
+                  ? 'text-[#E51020] font-bold'
                   : line.includes('dialog') || line.includes('Wizard')
                   ? 'text-emerald-400'
-                  : 'text-slate-400'
+                  : 'text-neutral-400'
               }
             >
               {line}
@@ -1191,36 +1157,36 @@ export default function AutoCadSimulator({
           <div ref={logEndRef} />
         </div>
 
-        {/* Input prompt form */}
-        <form onSubmit={handleCommandSubmit} className="mt-1 flex items-center gap-2 bg-[#141b24] px-3 py-1.5 rounded border border-slate-700">
-          <span className="text-cyan-400 font-bold text-xs">Command:</span>
+        {/* Command Form */}
+        <form onSubmit={handleCommandSubmit} className="mt-1 flex items-center gap-2 bg-[#141414] px-3 py-1.5 rounded-xl border border-[#333333]">
+          <span className="text-[#E51020] font-black text-xs">Command:</span>
           <input
             type="text"
             value={commandInput}
             onChange={e => setCommandInput(e.target.value)}
             placeholder="Escribe comando (LINE, RECTANG, BLOCK, UNITS, OFFSET, TRIM, HELP) y presiona Enter..."
-            className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none"
+            className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none placeholder-neutral-500"
           />
           <button
             type="submit"
-            className="bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] px-2.5 py-0.5 rounded font-sans transition"
+            className="bg-[#E51020] hover:bg-[#C40816] text-white text-[11px] font-bold px-3 py-1 rounded-lg font-sans transition"
           >
             Enter
           </button>
         </form>
 
         {/* Bottom CAD Status Bar */}
-        <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 px-1 pt-1">
+        <div className="mt-1 flex items-center justify-between text-[10px] text-neutral-500 px-1 pt-1">
           <div className="flex items-center gap-3">
-            <span className={snapEnabled ? 'text-cyan-400 font-bold' : ''}>SNAP [F9]</span>
-            <span className={gridEnabled ? 'text-cyan-400 font-bold' : ''}>GRID [F7]</span>
-            <span className={orthoEnabled ? 'text-amber-400 font-bold' : ''}>ORTHO [F8]</span>
-            <span className="text-slate-400">POLAR</span>
-            <span className="text-slate-400">OSNAP [F3]</span>
-            <span className="text-slate-400">MODEL</span>
+            <span className={snapEnabled ? 'text-[#E51020] font-bold' : ''}>SNAP [F9]</span>
+            <span className={gridEnabled ? 'text-white font-bold' : ''}>GRID [F7]</span>
+            <span className={orthoEnabled ? 'text-[#E51020] font-bold' : ''}>ORTHO [F8]</span>
+            <span className="text-neutral-400">POLAR</span>
+            <span className="text-neutral-400">OSNAP [F3]</span>
+            <span className="text-neutral-400">MODEL</span>
           </div>
           <div>
-            <span>Escala: 1:100</span>
+            <span className="text-neutral-400 font-mono">Escala: 1:100</span>
           </div>
         </div>
       </div>

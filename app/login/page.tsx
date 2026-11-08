@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, user } = useAuth();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,40 +44,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 blueprint-grid">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 autocad-grid bg-[#0A0A0A]">
       <div className="w-full max-w-md space-y-6">
-        {/* Back button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition"
+          className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Volver a la página principal</span>
+          <ArrowLeft className="w-4 h-4 text-[#E51020]" />
+          <span>Volver al inicio</span>
         </Link>
 
-        {/* Card */}
-        <div className="bg-[#121924] border border-slate-700/80 rounded-2xl p-8 shadow-2xl space-y-6 backdrop-blur-md">
+        {/* Card AutoCAD Red / Black / White */}
+        <div className="bg-[#141414] border border-[#2D2D2D] rounded-2xl p-8 shadow-2xl space-y-6 red-border-glow">
           {/* Header */}
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-700 mx-auto flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/40">
-              <Lock className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-[#E51020] mx-auto flex items-center justify-center font-black text-white shadow-xl red-glow">
+              <span className="font-mono text-xl">CAD</span>
             </div>
-            <h2 className="text-2xl font-bold text-white">Acceso al Portal Académico</h2>
-            <p className="text-xs text-slate-400">
+            <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+              Acceso a la Plataforma
+            </h2>
+            <p className="text-xs text-neutral-400">
               Materia de Diseño de Plantas con AutoCAD • Universidad Aztlán
             </p>
           </div>
 
           {/* Feedback Alerts */}
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-red-950/60 border border-red-700 text-xs text-red-200 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div className="p-3 rounded-xl bg-red-950/80 border border-red-700 text-xs text-red-200 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-[#E51020] shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-700 text-xs text-emerald-200 flex items-start gap-2">
+            <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-700 text-xs text-emerald-200 flex items-start gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <span>{successMessage}</span>
             </div>
@@ -86,7 +87,7 @@ export default function LoginPage() {
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-bold text-neutral-300 mb-1">
                 Correo Institucional o Usuario
               </label>
               <input
@@ -95,16 +96,16 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="ejemplo@aztlan.edu.mx"
-                className="w-full bg-[#17212f] border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full bg-[#1C1C1C] border border-[#333333] rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#E51020] focus:ring-1 focus:ring-[#E51020] transition"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-300">
+                <label className="block text-xs font-bold text-neutral-300">
                   Contraseña
                 </label>
-                <span className="text-[11px] text-cyan-400">¿Olvidaste tu clave? Contacta a tu docente</span>
+                <span className="text-[11px] text-[#FF4D5A]">¿Olvidaste tu clave? Contacta a tu docente</span>
               </div>
               <input
                 type="password"
@@ -112,39 +113,39 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-[#17212f] border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full bg-[#1C1C1C] border border-[#333333] rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#E51020] focus:ring-1 focus:ring-[#E51020] transition"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-cyan-900/30 flex items-center justify-center gap-2"
+              className="w-full bg-[#E51020] hover:bg-[#C40816] text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 red-glow"
             >
               <LogIn className="w-4 h-4" />
-              <span>Ingresar al Sistema</span>
+              <span>Ingresar al Portal Académico</span>
             </button>
           </form>
 
-          {/* Quick Login Presets for Evaluator */}
-          <div className="pt-4 border-t border-slate-800 space-y-2">
-            <span className="text-[11px] text-slate-400 block font-semibold text-center uppercase tracking-wider">
-              ⚡ Acceso Rápido de Prueba (1 Clic)
+          {/* Quick Demo Access Buttons */}
+          <div className="pt-4 border-t border-[#262626] space-y-2">
+            <span className="text-[11px] text-neutral-400 block font-bold text-center uppercase tracking-wider">
+              ⚡ Acceso Directo de Prueba (1 Clic)
             </span>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => handleQuickLogin('admin@aztlan.edu.mx', 'Admin2026!')}
-                className="p-2.5 rounded-xl bg-amber-950/40 hover:bg-amber-900/50 border border-amber-800/60 text-amber-300 text-xs font-semibold flex flex-col items-center gap-1 transition"
+                className="p-3 rounded-xl bg-red-950/40 hover:bg-red-900/50 border border-red-800 text-[#FF4D5A] text-xs font-bold flex flex-col items-center gap-1 transition"
               >
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <ShieldCheck className="w-4 h-4 text-[#E51020]" />
                 <span>Super Admin</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin('estudiante@aztlan.edu.mx', 'Alumno2026!')}
-                className="p-2.5 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-800/60 text-cyan-300 text-xs font-semibold flex flex-col items-center gap-1 transition"
+                className="p-3 rounded-xl bg-[#1C1C1C] hover:bg-[#282828] border border-[#333333] text-white text-xs font-bold flex flex-col items-center gap-1 transition"
               >
-                <UserCheck className="w-4 h-4 text-cyan-400" />
+                <UserCheck className="w-4 h-4 text-white" />
                 <span>Estudiante Demo</span>
               </button>
             </div>

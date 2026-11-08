@@ -4,7 +4,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  password: string; // Plain/hashed simulation for education portal
+  password: string;
   role: Role;
   matricula: string;
   carrera: string;
@@ -43,10 +43,17 @@ export interface Subtopic {
   id: string;
   title: string;
   content: string;
+  industrialExample: string;
   autocadConcept: string;
   autocadCommands: string[];
+  commandSyntax: string;
   industrialNorms: string[];
-  practicalExercise: string;
+  practicalExercise: {
+    title: string;
+    instructions: string[];
+    terminalInput: string;
+    expectedResult: string;
+  };
 }
 
 export type CadLevel = 'Básico' | 'Básico - Intermedio' | 'Intermedio' | 'Intermedio - Avanzado' | 'Avanzado';

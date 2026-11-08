@@ -5,13 +5,8 @@ import Link from 'next/link';
 import { INDUSTRIAL_NORMS } from '@/lib/courseData';
 import {
   Compass,
-  FileText,
-  ShieldCheck,
-  CheckCircle2,
   Terminal,
-  ArrowRight,
-  Sliders,
-  ExternalLink
+  ArrowRight
 } from 'lucide-react';
 
 export default function NormativasPage() {
@@ -21,7 +16,7 @@ export default function NormativasPage() {
       code: "NFPA 101",
       title: "Life Safety Code (Código de Seguridad Humana)",
       scope: "Anchos mínimos de pasillos de evacuación, distancias máximas de recorrido hacia salidas de emergencia (máximo 60m en edificios con rociadores), resistencia al fuego de muros perimetrales y puertas de vaivén con barra antipánico.",
-      autocadRule: "Trazar rutas de evacuación en capa de seguridad con flechas continuas y verificar radio de alcance de salidas."
+      autocadRule: "Trazar rutas de evacuación en capa de seguridad con flechas continuas y verificar radio de alcance de salidas con DIST."
     },
     {
       code: "OSHA 1910.22 / 1910.144",
@@ -38,16 +33,16 @@ export default function NormativasPage() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 blueprint-grid">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 autocad-grid bg-[#0A0A0A]">
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 text-xs font-mono border border-cyan-800">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950 text-[#FF4D5A] text-xs font-mono font-bold border border-red-800">
           <Compass className="w-3.5 h-3.5" />
           <span>NORMATIVIDAD TÉCNICA APLICADA A PLANOS CAD</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white">
+        <h1 className="text-3xl font-black text-white uppercase tracking-tight">
           Compendio de Normas Oficiales e Internacionales
         </h1>
-        <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
+        <p className="text-sm text-neutral-400 max-w-2xl leading-relaxed">
           Toda planta industrial desarrollada en el curso debe ajustarse a las normas de seguridad,
           simbología de ingeniería de procesos y representación gráfica en AutoCAD.
         </p>
@@ -57,14 +52,14 @@ export default function NormativasPage() {
         {extendedNorms.map(norm => (
           <div
             key={norm.code}
-            className="rounded-2xl bg-[#121924] border border-slate-800 p-6 space-y-4 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between"
+            className="rounded-2xl bg-[#141414] border border-[#262626] p-6 space-y-4 hover:border-[#E51020] transition duration-300 flex flex-col justify-between"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded border border-cyan-800">
+                <span className="text-xs font-mono font-bold text-white bg-[#E51020] px-2.5 py-1 rounded shadow">
                   {norm.code}
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                   Obligatoria en Planos
                 </span>
               </div>
@@ -73,26 +68,26 @@ export default function NormativasPage() {
                 {norm.title}
               </h3>
 
-              <div className="space-y-1.5 text-xs text-slate-300 leading-relaxed">
+              <div className="space-y-1.5 text-xs text-neutral-300 leading-relaxed">
                 <p>
-                  <strong className="text-slate-200">Alcance de Ingeniería:</strong> {norm.scope}
+                  <strong className="text-white">Alcance de Ingeniería:</strong> {norm.scope}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs space-y-1">
-                <span className="text-cyan-400 font-mono font-semibold flex items-center gap-1.5 text-[11px]">
+              <div className="p-3.5 rounded-xl bg-[#1C1C1C] border border-[#2D2D2D] text-xs space-y-1">
+                <span className="text-[#E51020] font-mono font-bold flex items-center gap-1.5 text-[11px]">
                   <Terminal className="w-3.5 h-3.5" /> Regla de Dibujo en AutoCAD:
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-neutral-300 text-[11px] leading-relaxed">
                   {norm.autocadRule}
                 </p>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+            <div className="pt-4 border-t border-[#262626] flex items-center justify-between">
               <Link
                 href="/laboratorio-cad"
-                className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
+                className="text-xs text-[#E51020] hover:text-white font-bold flex items-center gap-1 transition"
               >
                 <span>Aplicar en el Simulador</span>
                 <ArrowRight className="w-3.5 h-3.5" />

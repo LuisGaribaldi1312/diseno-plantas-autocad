@@ -3,22 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/authContext';
-import { COURSE_UNITS, VIRTUAL_PRACTICES } from '@/lib/courseData';
+import { COURSE_UNITS } from '@/lib/courseData';
 import { getStudentProgress } from '@/lib/storage';
 import { StudentProgress } from '@/lib/types';
 import {
   BookOpen,
   CheckCircle2,
-  Clock,
   Award,
   Terminal,
   ArrowRight,
   TrendingUp,
   Flame,
   FileCheck2,
-  AlertCircle,
-  ShieldCheck,
-  Compass
+  Lock,
+  Layers
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -32,7 +30,6 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  // Fallback demo progress if not logged in
   const activeProgress = progress || {
     userId: 'guest',
     units: {
@@ -48,7 +45,6 @@ export default function DashboardPage() {
     lastActive: new Date().toISOString()
   };
 
-  // Calculate stats
   const completedUnitsCount = Object.values(activeProgress.units).filter(u => u.completed).length;
   const completedPracticesCount = Object.values(activeProgress.practices).filter(p => p.completed).length;
   const overallPercent = Math.round(
@@ -56,43 +52,43 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 blueprint-grid">
-      {/* 1. WELCOME & USER STATUS BANNER */}
-      <div className="rounded-2xl bg-gradient-to-r from-[#131c28] via-[#172333] to-[#121c27] border border-slate-700/80 p-6 sm:p-8 shadow-xl">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 autocad-grid bg-[#0A0A0A]">
+      {/* 1. WELCOME & USER STATUS BANNER (AutoCAD Red / Deep Charcoal) */}
+      <div className="rounded-2xl bg-[#141414] border border-[#2D2D2D] p-6 sm:p-8 shadow-xl red-border-glow">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 text-xs font-mono border border-cyan-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 text-[#FF4D5A] text-xs font-mono font-bold border border-red-800">
+              <span className="w-2 h-2 rounded-full bg-[#E51020] animate-ping"></span>
               <span>Portal del Estudiante • Clave 1057</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+            <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
               {user ? `Bienvenido(a), ${user.name}` : 'Panel de Avance del Estudiante'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300">
-              {user?.carrera || 'Ingeniería Industrial - Décimo Cuatrimestre'} • Matrícula: {user?.matricula || 'AZT-2026-DEMO'}
+            <p className="text-xs sm:text-sm text-neutral-300">
+              {user?.carrera || 'Ingeniería Industrial - Décimo Cuatrimestre'} • Matrícula: <span className="font-mono text-white font-bold">{user?.matricula || 'AZT-2026-DEMO'}</span>
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+          <div className="flex items-center gap-4 bg-[#1C1C1C] p-4 rounded-xl border border-[#333333]">
             <div className="text-right">
-              <span className="text-xs text-slate-400 block font-semibold">Progreso de Materia</span>
-              <span className="text-2xl font-extrabold text-cyan-400 font-mono">{overallPercent}%</span>
+              <span className="text-xs text-neutral-400 block font-bold">Progreso de la Materia</span>
+              <span className="text-3xl font-black text-[#E51020] font-mono">{overallPercent}%</span>
             </div>
-            <div className="w-16 h-16 rounded-full border-4 border-slate-800 border-t-cyan-500 border-r-cyan-500 flex items-center justify-center font-bold text-xs text-white">
+            <div className="w-16 h-16 rounded-full border-4 border-[#2A2A2A] border-t-[#E51020] border-r-[#E51020] flex items-center justify-center font-bold text-xs text-white">
               {completedUnitsCount}/6
             </div>
           </div>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar in AutoCAD Red */}
         <div className="mt-6 space-y-1.5">
-          <div className="flex justify-between text-xs font-semibold text-slate-400">
+          <div className="flex justify-between text-xs font-bold text-neutral-400">
             <span>Ruta Curricular de AutoCAD & Diseño de Plantas</span>
-            <span className="text-cyan-400 font-mono">{overallPercent}% completado</span>
+            <span className="text-[#E51020] font-mono">{overallPercent}% completado</span>
           </div>
-          <div className="w-full bg-slate-800/80 h-2.5 rounded-full overflow-hidden border border-slate-700">
+          <div className="w-full bg-[#202020] h-3 rounded-full overflow-hidden border border-[#333333]">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#E51020] to-[#FF4D5A] h-full transition-all duration-500"
               style={{ width: `${Math.max(overallPercent, 8)}%` }}
             />
           </div>
@@ -101,44 +97,44 @@ export default function DashboardPage() {
 
       {/* 2. STATS OVERVIEW CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-xl bg-[#131b26] border border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-cyan-950 text-cyan-400 border border-cyan-800">
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#262626] flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-red-950 text-[#E51020] border border-red-800">
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 block">Unidades Aprobadas</span>
+            <span className="text-xs text-neutral-400 block font-semibold">Unidades Aprobadas</span>
             <span className="text-xl font-bold text-white font-mono">{completedUnitsCount} de 6</span>
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#131b26] border border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-amber-950 text-amber-400 border border-amber-800">
-            <Terminal className="w-6 h-6" />
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#262626] flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-[#1F1F1F] text-white border border-[#333333]">
+            <Terminal className="w-6 h-6 text-[#E51020]" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 block">Prácticas Virtuales</span>
+            <span className="text-xs text-neutral-400 block font-semibold">Prácticas Virtuales</span>
             <span className="text-xl font-bold text-white font-mono">{completedPracticesCount} de 6</span>
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#131b26] border border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-800">
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#262626] flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-red-950 text-[#E51020] border border-red-800">
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 block">Proyecto Capstone</span>
-            <span className="text-sm font-bold text-emerald-400 uppercase">
+            <span className="text-xs text-neutral-400 block font-semibold">Proyecto Capstone</span>
+            <span className="text-sm font-bold text-white uppercase">
               {activeProgress.projectStatus.replace('_', ' ')}
             </span>
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#131b26] border border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-purple-950 text-purple-400 border border-purple-800">
-            <TrendingUp className="w-6 h-6" />
+        <div className="p-5 rounded-xl bg-[#141414] border border-[#262626] flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-[#1F1F1F] text-white border border-[#333333]">
+            <TrendingUp className="w-6 h-6 text-[#E51020]" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 block">Promedio Cuestionarios</span>
+            <span className="text-xs text-neutral-400 block font-semibold">Promedio Cuestionarios</span>
             <span className="text-xl font-bold text-white font-mono">
               {Object.values(activeProgress.quizScores).length > 0
                 ? `${Math.round(
@@ -155,14 +151,14 @@ export default function DashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-white">Módulos de Aprendizaje con AutoCAD</h2>
-            <p className="text-xs text-slate-400">
-              Avanza unidad por unidad, completa las prácticas en el simulador CAD y aprueba las evaluaciones técnicas.
+            <h2 className="text-xl font-black text-white uppercase tracking-tight">Módulos de AutoCAD por Unidad</h2>
+            <p className="text-xs text-neutral-400">
+              Avanza unidad por unidad, completa las prácticas interactivas en el simulador CAD y aprueba las evaluaciones.
             </p>
           </div>
           <Link
             href="/laboratorio-cad"
-            className="hidden sm:flex items-center gap-2 text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-4 py-2 rounded-lg transition"
+            className="hidden sm:flex items-center gap-2 text-xs bg-[#E51020] hover:bg-[#C40816] text-white font-bold px-4 py-2 rounded-lg transition shadow"
           >
             <Terminal className="w-3.5 h-3.5" />
             <span>Abrir Simulador Libre</span>
@@ -181,21 +177,21 @@ export default function DashboardPage() {
                 key={unit.id}
                 className={`rounded-2xl border p-6 flex flex-col justify-between transition ${
                   isCompleted
-                    ? 'bg-[#121c27] border-emerald-800/80'
-                    : 'bg-[#121924] border-slate-800 hover:border-cyan-500/50'
+                    ? 'bg-[#151515] border-red-700/80 shadow-md'
+                    : 'bg-[#141414] border-[#2A2A2A] hover:border-[#E51020]'
                 }`}
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded border border-cyan-800">
+                    <span className="text-xs font-mono font-bold text-white bg-[#E51020] px-2.5 py-1 rounded shadow">
                       {unit.number}
                     </span>
                     {isCompleted ? (
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-800">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Completada
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-white bg-red-950 px-2.5 py-0.5 rounded-full border border-red-700">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#E51020]" /> Completada
                       </span>
                     ) : (
-                      <span className="text-[11px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-semibold text-neutral-400 bg-[#222222] px-2 py-0.5 rounded">
                         Pendiente
                       </span>
                     )}
@@ -205,51 +201,51 @@ export default function DashboardPage() {
                     {unit.title}
                   </h3>
 
-                  <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                  <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">
                     {unit.description}
                   </p>
 
                   {/* CAD focus chip */}
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] space-y-1">
-                    <span className="text-cyan-400 font-mono font-semibold block">
+                  <div className="p-3 rounded-xl bg-[#1C1C1C] border border-[#2D2D2D] text-[11px] space-y-1">
+                    <span className="text-[#E51020] font-mono font-bold block">
                       AutoCAD {unit.cadLevel}:
                     </span>
-                    <p className="text-slate-300 leading-normal line-clamp-2">
+                    <p className="text-neutral-300 leading-normal line-clamp-2">
                       {unit.cadFocus}
                     </p>
                   </div>
 
                   {/* Practice & Quiz status indicators */}
-                  <div className="space-y-1.5 pt-2 border-t border-slate-800/80 text-xs">
+                  <div className="space-y-1.5 pt-2 border-t border-[#262626] text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Práctica Virtual:</span>
-                      <span className={pracProg?.completed ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
+                      <span className="text-neutral-400">Práctica Virtual:</span>
+                      <span className={pracProg?.completed ? 'text-white font-bold' : 'text-neutral-500'}>
                         {pracProg?.completed ? '✓ Resuelta (100%)' : 'Pendiente'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Quiz Normativo:</span>
-                      <span className={quizScore !== undefined ? 'text-cyan-400 font-semibold' : 'text-slate-500'}>
+                      <span className="text-neutral-400">Quiz Normativo:</span>
+                      <span className={quizScore !== undefined ? 'text-[#FF4D5A] font-bold' : 'text-neutral-500'}>
                         {quizScore !== undefined ? `${quizScore} / 100 pts` : 'No presentado'}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-slate-800 flex items-center justify-between mt-4">
+                <div className="pt-6 border-t border-[#262626] flex items-center justify-between mt-4">
                   <Link
                     href={`/unidades/${unit.id}`}
-                    className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                    className="text-xs font-bold text-[#E51020] hover:text-white flex items-center gap-1"
                   >
-                    <span>Ver Contenido</span>
+                    <span>Ver Subtemas</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
 
                   <Link
                     href={`/laboratorio-cad?practica=${unit.practiceId}`}
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1"
+                    className="text-xs bg-[#222222] hover:bg-[#E51020] text-white px-3 py-1.5 rounded-lg border border-[#333333] flex items-center gap-1 transition"
                   >
-                    <Terminal className="w-3 h-3 text-cyan-400" />
+                    <Terminal className="w-3 h-3 text-[#E51020]" />
                     <span>Lanzar CAD</span>
                   </Link>
                 </div>

@@ -8,13 +8,7 @@ import { updateStudentPracticeProgress } from '@/lib/storage';
 import AutoCadSimulator from '@/components/AutoCadSimulator';
 import {
   Terminal,
-  Layers,
-  Award,
-  BookOpen,
-  Keyboard,
-  Info,
-  CheckCircle2,
-  ListOrdered
+  Keyboard
 } from 'lucide-react';
 
 function CadLabContent() {
@@ -41,35 +35,35 @@ function CadLabContent() {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Header & Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#121924] p-4 rounded-xl border border-slate-700/80">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 autocad-grid bg-[#0A0A0A]">
+      {/* Top Header & Selector (AutoCAD Red & Black) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-4 rounded-2xl border border-[#2A2A2A] red-border-glow">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center text-white font-bold font-mono">
+          <div className="w-10 h-10 rounded-xl bg-[#E51020] flex items-center justify-center text-white font-black font-mono shadow-md">
             CAD
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white flex items-center gap-2">
+            <h1 className="text-lg font-black text-white flex items-center gap-2 uppercase tracking-tight">
               <span>Laboratorio Virtual de AutoCAD para Diseño de Plantas</span>
-              <span className="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-800 font-mono">
-                v2026.1
+              <span className="text-[10px] bg-red-950 text-[#FF4D5A] px-2.5 py-0.5 rounded-full border border-red-800 font-mono font-bold">
+                v2026.1 RED
               </span>
             </h1>
-            <p className="text-xs text-slate-400">
-              Espacio interactivo 2D con consola de comandos reales, bloques industriales ISA-5.1 y normas NOM/ISO.
+            <p className="text-xs text-neutral-400">
+              Espacio interactivo 2D con comandos reales, bloques industriales ISA-5.1 y normas NOM/ISO.
             </p>
           </div>
         </div>
 
         {/* Practice Selector Dropdown */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">
+          <span className="text-xs text-neutral-300 font-bold whitespace-nowrap">
             Misión / Práctica:
           </span>
           <select
             value={selectedPracticeId}
             onChange={e => setSelectedPracticeId(e.target.value)}
-            className="bg-slate-800 text-cyan-300 font-semibold text-xs rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-cyan-500"
+            className="bg-[#1C1C1C] text-white font-bold text-xs rounded-xl px-3.5 py-2 border border-[#333333] focus:outline-none focus:border-[#E51020]"
           >
             {VIRTUAL_PRACTICES.map(p => (
               <option key={p.id} value={p.id}>
@@ -89,36 +83,36 @@ function CadLabContent() {
       </div>
 
       {/* Quick AutoCAD Command Shortcuts Reference */}
-      <div className="p-4 rounded-xl bg-[#121924] border border-slate-800 text-xs space-y-3">
-        <div className="flex items-center gap-2 font-bold text-white">
-          <Keyboard className="w-4 h-4 text-cyan-400" />
+      <div className="p-5 rounded-2xl bg-[#141414] border border-[#2A2A2A] text-xs space-y-3">
+        <div className="flex items-center gap-2 font-black text-white uppercase tracking-tight">
+          <Keyboard className="w-4 h-4 text-[#E51020]" />
           <span>Atajos de Teclado y Comandos Esenciales de AutoCAD en Diseño de Plantas</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-[11px] font-mono">
-          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-            <span className="text-cyan-400 font-bold block">F8: ORTHOMODE</span>
-            <span className="text-slate-400">Trazado a 90°</span>
+          <div className="bg-[#1C1C1C] p-2.5 rounded-xl border border-[#2E2E2E]">
+            <span className="text-[#E51020] font-black block">F8: ORTHOMODE</span>
+            <span className="text-neutral-400">Trazado a 90°</span>
           </div>
-          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-            <span className="text-cyan-400 font-bold block">F3: OSNAP</span>
-            <span className="text-slate-400">Referencias a objetos</span>
+          <div className="bg-[#1C1C1C] p-2.5 rounded-xl border border-[#2E2E2E]">
+            <span className="text-white font-black block">F3: OSNAP</span>
+            <span className="text-neutral-400">Referencias a objetos</span>
           </div>
-          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-            <span className="text-cyan-400 font-bold block">F7: GRID</span>
-            <span className="text-slate-400">Rejilla de fondo</span>
+          <div className="bg-[#1C1C1C] p-2.5 rounded-xl border border-[#2E2E2E]">
+            <span className="text-[#E51020] font-black block">F7: GRID</span>
+            <span className="text-neutral-400">Rejilla de fondo</span>
           </div>
-          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-            <span className="text-amber-400 font-bold block">PL / L: LINE</span>
-            <span className="text-slate-400">Trazado perimetral</span>
+          <div className="bg-[#1C1C1C] p-2.5 rounded-xl border border-[#2E2E2E]">
+            <span className="text-white font-black block">PL / L: LINE</span>
+            <span className="text-neutral-400">Trazado perimetral</span>
           </div>
-          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-            <span className="text-amber-400 font-bold block">O: OFFSET</span>
-            <span className="text-slate-400">Muros paralelos</span>
+          <div className="bg-[#1C1C1C] p-2.5 rounded-xl border border-[#2E2E2E]">
+            <span className="text-[#E51020] font-black block">O: OFFSET</span>
+            <span className="text-neutral-400">Muros paralelos</span>
           </div>
-          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-            <span className="text-amber-400 font-bold block">B / I: BLOCK</span>
-            <span className="text-slate-400">Equipos y válvulas</span>
+          <div className="bg-[#1C1C1C] p-2.5 rounded-xl border border-[#2E2E2E]">
+            <span className="text-white font-black block">B / I: BLOCK</span>
+            <span className="text-neutral-400">Equipos y válvulas</span>
           </div>
         </div>
       </div>
@@ -128,7 +122,7 @@ function CadLabContent() {
 
 export default function CadLabPage() {
   return (
-    <Suspense fallback={<div className="p-10 text-center text-slate-400 font-mono">Cargando Laboratorio CAD...</div>}>
+    <Suspense fallback={<div className="p-10 text-center text-neutral-400 font-mono">Cargando Laboratorio CAD AutoCAD 2026...</div>}>
       <CadLabContent />
     </Suspense>
   );
