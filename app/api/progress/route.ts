@@ -31,7 +31,7 @@ async function loadCloudProgress(): Promise<Record<string, StudentProgress>> {
       return memoryCacheProgress;
     }
     const data = await res.json();
-    memoryCacheProgress = { ...memoryCacheProgress, ...data };
+    memoryCacheProgress = { ...INITIAL_PROGRESS, ...memoryCacheProgress, ...data };
     return memoryCacheProgress;
   } catch (err) {
     console.error('Error loading cloud progress:', err);

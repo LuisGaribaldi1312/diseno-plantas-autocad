@@ -75,6 +75,36 @@ export const DEFAULT_USERS: User[] = [
     matricula: "AZT-1057-0103",
     carrera: "Ingeniería Industrial - 10° Cuatrimestre",
     createdAt: "2026-11-08T08:00:00Z"
+  },
+  {
+    id: "student-jgonzalez",
+    name: "J. González",
+    email: "jgonzalez@aztlan.edu.mx",
+    password: "jgonzalez",
+    role: "student",
+    matricula: "AZT-1057-0104",
+    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
+    createdAt: "2026-11-08T22:00:00Z"
+  },
+  {
+    id: "student-djimenez",
+    name: "D. Jiménez",
+    email: "djimenez@aztlan.edu.mx",
+    password: "djimenez",
+    role: "student",
+    matricula: "AZT-1057-0105",
+    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
+    createdAt: "2026-11-08T22:00:00Z"
+  },
+  {
+    id: "student-dmorales",
+    name: "D. Morales",
+    email: "dmorales@aztlan.edu.mx",
+    password: "dmorales",
+    role: "student",
+    matricula: "AZT-1057-0106",
+    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
+    createdAt: "2026-11-08T22:00:00Z"
   }
 ];
 
@@ -98,6 +128,7 @@ export const INITIAL_PROGRESS: Record<string, StudentProgress> = {
     projectGrade: undefined,
     projectUrl: "https://github.com/aztlan-student/planta-quimica-final",
     projectNotes: "Avance del 60%: Layout 2D completo y diagrama P&ID en proceso.",
+    globalPercent: 35,
     lastActive: "2026-11-07T18:30:00Z"
   },
   "student-2": {
@@ -112,6 +143,7 @@ export const INITIAL_PROGRESS: Record<string, StudentProgress> = {
       "quiz-1": 100
     },
     projectStatus: "no_iniciado",
+    globalPercent: 14,
     lastActive: "2026-11-06T14:20:00Z"
   },
   "student-3": {
@@ -120,7 +152,62 @@ export const INITIAL_PROGRESS: Record<string, StudentProgress> = {
     practices: {},
     quizScores: {},
     projectStatus: "no_iniciado",
+    globalPercent: 0,
     lastActive: "2026-11-05T11:45:00Z"
+  },
+  "student-jtorres": {
+    userId: "student-jtorres",
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: "no_iniciado",
+    globalPercent: 0,
+    lastActive: "2026-11-08T08:00:00Z"
+  },
+  "student-xguevara": {
+    userId: "student-xguevara",
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: "no_iniciado",
+    globalPercent: 0,
+    lastActive: "2026-11-08T08:00:00Z"
+  },
+  "student-adominguez": {
+    userId: "student-adominguez",
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: "no_iniciado",
+    globalPercent: 0,
+    lastActive: "2026-11-08T08:00:00Z"
+  },
+  "student-jgonzalez": {
+    userId: "student-jgonzalez",
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: "no_iniciado",
+    globalPercent: 0,
+    lastActive: "2026-11-08T22:00:00Z"
+  },
+  "student-djimenez": {
+    userId: "student-djimenez",
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: "no_iniciado",
+    globalPercent: 0,
+    lastActive: "2026-11-08T22:00:00Z"
+  },
+  "student-dmorales": {
+    userId: "student-dmorales",
+    units: {},
+    practices: {},
+    quizScores: {},
+    projectStatus: "no_iniciado",
+    globalPercent: 0,
+    lastActive: "2026-11-08T22:00:00Z"
   }
 };
 
@@ -174,7 +261,18 @@ export function getAllProgress(): Record<string, StudentProgress> {
       localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(INITIAL_PROGRESS));
       return INITIAL_PROGRESS;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    let hasUpdates = false;
+    for (const [uid, p] of Object.entries(INITIAL_PROGRESS)) {
+      if (!parsed[uid]) {
+        parsed[uid] = p;
+        hasUpdates = true;
+      }
+    }
+    if (hasUpdates) {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(parsed));
+    }
+    return parsed;
   } catch (err) {
     console.error("Error reading progress from storage:", err);
     return INITIAL_PROGRESS;

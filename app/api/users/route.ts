@@ -20,10 +20,15 @@ async function loadCloudUsers(): Promise<User[]> {
     const existing = new Set(cloudUsers.map(u => u.email.toLowerCase().trim()));
 
     // Ensure default accounts exist
+    let hasNew = false;
     for (const def of DEFAULT_USERS) {
       if (!existing.has(def.email.toLowerCase().trim())) {
         cloudUsers.push(def);
+        hasNew = true;
       }
+    }
+    if (hasNew) {
+      await saveCloudUsers(cloudUsers);
     }
     memoryUsers = cloudUsers;
     return memoryUsers;
