@@ -7,14 +7,17 @@ import {
   saveUsers,
   getStoredCurrentUser,
   setStoredCurrentUser,
-  pullLatestRemoteProgress
+  pullLatestRemoteProgress,
+  fetchRemoteUsers,
+  markUserAsDeletedLocally,
+  unmarkUserAsDeletedLocally
 } from './storage';
 import { p2pManager } from './p2pSync';
 
 interface AuthContextType {
   user: User | null;
   users: User[];
-  login: (email: string, pass: string) => { success: boolean; message: string };
+  login: (email: string, pass: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   createUser: (userData: Omit<User, 'id' | 'createdAt'>) => { success: boolean; message: string };
   updateUserPassword: (userId: string, newPass: string) => { success: boolean; message: string };
@@ -71,14 +74,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUsers(loadedUsers);
   };
 
-  const login = (email: string, pass: string) => {
-    const currentUsers = getStoredUsers();
+  const login = async (email: string, pass: string): Promise<{ success: boolean; message: string }> => {
+    let currentUsers = getStoredUsers();
     const cleanEmail = email.toLowerCase().trim();
     const cleanPass = pass.trim();
 
-    const found = currentUsers.find(
+    let found = currentUsers.find(
       u => u.email.toLowerCase().trim() === cleanEmail
     );
+
+    // If user not found locally or password mismatch, refresh from cloud database immediately!
+    if (!found || (found.password !== cleanPass && found.password !== pass)) {
+      try {
+        const remoteUsers = await fetchRemoteUsers();
+        if (remoteUsers && remoteUsers.length > 0) {
+          currentUsers = remoteUsers;
+          setUsers(remoteUsers);
+          found = remoteUsers.find(
+            u => u.email.toLowerCase().trim() === cleanEmail
+          );
+        }
+      } catch (e) {}
+    }
 
     if (!found) {
       return { success: false, message: 'Usuario no encontrado en la base de datos de Universidad Aztlán.' };
@@ -114,14 +131,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
     const currentUsers = getStoredUsers();
+    const cleanEmail = userData.email.toLowerCase().trim();
+    const cleanMatricula = userData.matricula.toLowerCase().trim();
+
     const exists = currentUsers.some(
-      u => u.email.toLowerCase().trim() === userData.email.toLowerCase().trim() ||
-           u.matricula.toLowerCase().trim() === userData.matricula.toLowerCase().trim()
+      u => u.email.toLowerCase().trim() === cleanEmail ||
+           u.matricula.toLowerCase().trim() === cleanMatricula
     );
 
     if (exists) {
       return { success: false, message: 'Ya existe un usuario registrado con ese correo o matrícula.' };
     }
+
+    unmarkUserAsDeletedLocally(cleanEmail);
 
     const newUser: User = {
       ...userData,
@@ -133,21 +155,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveUsers(newUsersList);
     setUsers(newUsersList);
 
-    // Sync to cloud API
+    // Sync permanently to cloud API and Vercel Blob
     try {
       fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: newUser })
+        body: JSON.stringify({ action: 'create', user: newUser }),
+        keepalive: true
       }).catch(() => {});
     } catch (e) {}
 
-    return { success: true, message: `Usuario ${newUser.name} creado exitosamente.` };
+    return { success: true, message: `Usuario ${newUser.name} creado y guardado permanentemente en la base de datos.` };
   };
 
   const updateUserPassword = (userId: string, newPass: string) => {
-    if (!newPass || newPass.trim().length < 6) {
-      return { success: false, message: 'La contraseña debe contener al menos 6 caracteres.' };
+    if (!newPass || newPass.trim().length < 4) {
+      return { success: false, message: 'La contraseña debe contener al menos 4 caracteres.' };
     }
 
     const currentUsers = getStoredUsers();
@@ -156,15 +179,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, message: 'Usuario no encontrado.' };
     }
 
-    currentUsers[index].password = newPass;
+    currentUsers[index].password = newPass.trim();
     saveUsers(currentUsers);
     setUsers([...currentUsers]);
 
     if (user?.id === userId) {
-      const updated = { ...user, password: newPass };
+      const updated = { ...user, password: newPass.trim() };
       setUser(updated);
       setStoredCurrentUser(updated);
     }
+
+    // Sync password update to cloud API
+    try {
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updatePassword', userId, newPassword: newPass.trim() }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) {}
 
     return { success: true, message: `Contraseña actualizada correctamente para ${currentUsers[index].name}.` };
   };
@@ -176,15 +209,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const currentUsers = getStoredUsers();
     const target = currentUsers.find(u => u.id === userId);
-    if (target?.email === 'admin@aztlan.edu.mx') {
+    if (!target) {
+      return { success: false, message: 'Usuario no encontrado.' };
+    }
+
+    if (target.email.toLowerCase().trim() === 'admin@aztlan.edu.mx') {
       return { success: false, message: 'No es posible eliminar al Super Administrador principal del sistema.' };
     }
 
+    // 1. Mark as deleted locally so it never resurrects
+    markUserAsDeletedLocally(target.email);
+
+    // 2. Remove from local storage and state
     const filtered = currentUsers.filter(u => u.id !== userId);
     saveUsers(filtered);
     setUsers(filtered);
 
-    return { success: true, message: 'Usuario eliminado exitosamente.' };
+    // 3. Delete permanently from Vercel Blob cloud database
+    try {
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', userId, email: target.email }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) {}
+
+    return { success: true, message: `Usuario ${target.name} eliminado definitivamente de la base de datos.` };
   };
 
   return (

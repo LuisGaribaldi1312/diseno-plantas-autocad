@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminPage() {
-  const { user, users, createUser, updateUserPassword, deleteUser, isAdmin } = useAuth();
+  const { user, users, createUser, updateUserPassword, deleteUser, isAdmin, refreshUsers } = useAuth();
   const [progressData, setProgressData] = useState<Record<string, StudentProgress>>(() => getAllProgress());
   const [p2pStatus, setP2pStatus] = useState({ connected: false, peerCount: 0, peerId: '', mode: 'idle' });
   const [recentP2PEvents, setRecentP2PEvents] = useState<Array<{ id: string; studentName: string; text: string; time: string }>>([]);
@@ -86,8 +86,9 @@ export default function AdminPage() {
       p2pManager.requestAllStudentsSync();
       const remote = await pullLatestRemoteProgress();
       setProgressData(remote);
+      refreshUsers();
       setLastSyncTime(new Date().toLocaleTimeString('es-MX'));
-      setSyncFeedback('¡Avances sincronizados exitosamente con todos los alumnos y Vercel Blob!');
+      setSyncFeedback('¡Avances y lista de usuarios sincronizados en tiempo real!');
       setTimeout(() => setSyncFeedback(null), 4000);
     } catch (e) {
       setSyncFeedback('Sincronización completada con datos locales.');
@@ -506,12 +507,15 @@ export default function AdminPage() {
                       {u.id !== user?.id && u.email !== 'admin@aztlan.edu.mx' && (
                         <button
                           onClick={() => {
-                            if (confirm(`¿Estás seguro de eliminar a ${u.name}?`)) {
-                              deleteUser(u.id);
+                            if (confirm(`¿Estás seguro de ELIMINAR DEFINITIVAMENTE al usuario "${u.name}" (${u.email})?\n\nEsta acción borrará al usuario permanentemente de la plataforma y de la base de datos en la nube.`)) {
+                              const res = deleteUser(u.id);
+                              if (res && res.message) {
+                                alert(res.message);
+                              }
                             }
                           }}
-                          title="Eliminar Usuario"
-                          className="p-1.5 rounded-lg bg-[#222222] hover:bg-red-900 text-red-400 border border-[#333333] transition"
+                          title="Eliminar Usuario Permanentemente"
+                          className="p-1.5 rounded-lg bg-[#222222] hover:bg-red-900 text-red-400 hover:text-white border border-[#333333] transition"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

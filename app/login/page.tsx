@@ -15,19 +15,28 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
+    setIsSubmitting(true);
 
-    const res = login(email, password);
-    if (res.success) {
-      setSuccessMessage(res.message);
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 700);
-    } else {
-      setErrorMessage(res.message);
+    try {
+      const res = await login(email, password);
+      if (res.success) {
+        setSuccessMessage(res.message);
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 700);
+      } else {
+        setErrorMessage(res.message);
+      }
+    } catch (err: any) {
+      setErrorMessage('Ocurrió un error al iniciar sesión. Inténtalo de nuevo.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -107,10 +116,11 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-[#E51020] hover:bg-[#C40816] text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 red-glow"
+              disabled={isSubmitting}
+              className="w-full bg-[#E51020] hover:bg-[#C40816] disabled:opacity-50 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 red-glow"
             >
               <LogIn className="w-4 h-4" />
-              <span>Ingresar al Portal Académico</span>
+              <span>{isSubmitting ? 'Verificando credenciales...' : 'Ingresar al Portal Académico'}</span>
             </button>
           </form>
         </div>

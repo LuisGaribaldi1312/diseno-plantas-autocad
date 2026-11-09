@@ -214,34 +214,87 @@ export const INITIAL_PROGRESS: Record<string, StudentProgress> = {
 const USERS_STORAGE_KEY = 'aztlan_plant_design_users_v1';
 const PROGRESS_STORAGE_KEY = 'aztlan_plant_design_progress_v1';
 const CURRENT_USER_KEY = 'aztlan_plant_design_current_user_v1';
+const DELETED_USERS_KEY = 'aztlan_deleted_users_v1';
+
+export function getDeletedUserEmails(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(DELETED_USERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function markUserAsDeletedLocally(email: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = getDeletedUserEmails();
+    const clean = email.toLowerCase().trim();
+    if (!list.includes(clean)) {
+      list.push(clean);
+      localStorage.setItem(DELETED_USERS_KEY, JSON.stringify(list));
+    }
+  } catch (e) {}
+}
+
+export function unmarkUserAsDeletedLocally(email: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = getDeletedUserEmails().filter(e => e !== email.toLowerCase().trim());
+    localStorage.setItem(DELETED_USERS_KEY, JSON.stringify(list));
+  } catch (e) {}
+}
 
 export function getStoredUsers(): User[] {
   if (typeof window === 'undefined') return DEFAULT_USERS;
   try {
+    const deletedSet = new Set(getDeletedUserEmails());
     const raw = localStorage.getItem(USERS_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
-      return DEFAULT_USERS;
+      const filteredDefaults = DEFAULT_USERS.filter(u => !deletedSet.has(u.email.toLowerCase().trim()));
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(filteredDefaults));
+      return filteredDefaults;
     }
     const parsed: User[] = JSON.parse(raw);
     const existingEmails = new Set(parsed.map(u => u.email.toLowerCase().trim()));
     let hasUpdates = false;
 
     for (const defUser of DEFAULT_USERS) {
-      if (!existingEmails.has(defUser.email.toLowerCase().trim())) {
+      const cleanEmail = defUser.email.toLowerCase().trim();
+      if (!existingEmails.has(cleanEmail) && !deletedSet.has(cleanEmail)) {
         parsed.push(defUser);
         hasUpdates = true;
       }
     }
 
-    if (hasUpdates) {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(parsed));
+    const validUsers = parsed.filter(u => !deletedSet.has(u.email.toLowerCase().trim()));
+
+    if (hasUpdates || validUsers.length !== parsed.length) {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(validUsers));
     }
-    return parsed;
+    return validUsers;
   } catch (err) {
     console.error("Error reading users from storage:", err);
     return DEFAULT_USERS;
   }
+}
+
+export async function fetchRemoteUsers(): Promise<User[]> {
+  if (typeof window === 'undefined') return getStoredUsers();
+  try {
+    const res = await fetch(`/api/users?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.users)) {
+        const deletedSet = new Set(getDeletedUserEmails());
+        const valid = data.users.filter((u: User) => !deletedSet.has(u.email.toLowerCase().trim()));
+        saveUsers(valid);
+        return valid;
+      }
+    }
+  } catch (e) {}
+  return getStoredUsers();
 }
 
 export function saveUsers(users: User[]): void {
