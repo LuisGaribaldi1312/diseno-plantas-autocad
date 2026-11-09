@@ -21,7 +21,7 @@ interface AuthContextType {
   logout: () => void;
   createUser: (userData: Omit<User, 'id' | 'createdAt'>) => { success: boolean; message: string };
   updateUserPassword: (userId: string, newPass: string) => { success: boolean; message: string };
-  deleteUser: (userId: string) => { success: boolean; message: string };
+  deleteUser: (userId: string, userEmail?: string) => { success: boolean; message: string };
   isAdmin: boolean;
   isStudent: boolean;
   refreshUsers: () => void;
@@ -202,40 +202,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: `Contraseña actualizada correctamente para ${currentUsers[index].name}.` };
   };
 
-  const deleteUser = (userId: string) => {
-    if (user?.id === userId) {
+  const deleteUser = (userId: string, userEmail?: string) => {
+    const cleanEmail = (userEmail || '').toLowerCase().trim();
+    if (user?.id === userId || (cleanEmail && user?.email.toLowerCase().trim() === cleanEmail)) {
       return { success: false, message: 'No puedes eliminar tu propia cuenta en sesión.' };
     }
 
-    const currentUsers = getStoredUsers();
-    const target = currentUsers.find(u => u.id === userId);
-    if (!target) {
-      return { success: false, message: 'Usuario no encontrado.' };
-    }
-
-    if (target.email.toLowerCase().trim() === 'admin@aztlan.edu.mx') {
+    if (cleanEmail === 'admin@aztlan.edu.mx' || userId === 'admin-1') {
       return { success: false, message: 'No es posible eliminar al Super Administrador principal del sistema.' };
     }
 
-    // 1. Mark as deleted locally so it never resurrects
-    markUserAsDeletedLocally(target.email);
+    const currentUsers = getStoredUsers();
+    // Search across local storage AND current React state by ID or Email
+    const target = currentUsers.find(u => u.id === userId || (cleanEmail && u.email.toLowerCase().trim() === cleanEmail))
+      || users.find(u => u.id === userId || (cleanEmail && u.email.toLowerCase().trim() === cleanEmail));
 
-    // 2. Remove from local storage and state
-    const filtered = currentUsers.filter(u => u.id !== userId);
+    const finalEmail = (target?.email || userEmail || '').toLowerCase().trim();
+
+    if (finalEmail) {
+      // 1. Mark as deleted locally so it never resurrects
+      markUserAsDeletedLocally(finalEmail);
+    }
+
+    // 2. Remove from local storage and React state
+    const filtered = currentUsers.filter(u => u.id !== userId && (!finalEmail || u.email.toLowerCase().trim() !== finalEmail));
     saveUsers(filtered);
-    setUsers(filtered);
+    setUsers(prev => prev.filter(u => u.id !== userId && (!finalEmail || u.email.toLowerCase().trim() !== finalEmail)));
 
     // 3. Delete permanently from Vercel Blob cloud database
     try {
       fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', userId, email: target.email }),
+        body: JSON.stringify({ action: 'delete', userId, email: finalEmail }),
         keepalive: true
       }).catch(() => {});
     } catch (e) {}
 
-    return { success: true, message: `Usuario ${target.name} eliminado definitivamente de la base de datos.` };
+    const displayName = target?.name || userEmail || userId;
+    return { success: true, message: `Usuario ${displayName} eliminado definitivamente de la base de datos.` };
   };
 
   return (

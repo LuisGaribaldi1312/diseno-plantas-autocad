@@ -508,7 +508,7 @@ export default function AdminPage() {
                         <button
                           onClick={() => {
                             if (confirm(`¿Estás seguro de ELIMINAR DEFINITIVAMENTE al usuario "${u.name}" (${u.email})?\n\nEsta acción borrará al usuario permanentemente de la plataforma y de la base de datos en la nube.`)) {
-                              const res = deleteUser(u.id);
+                              const res = deleteUser(u.id, u.email);
                               if (res && res.message) {
                                 alert(res.message);
                               }

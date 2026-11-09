@@ -25,17 +25,6 @@ export const DEFAULT_USERS: User[] = [
     lastLogin: "2026-11-07T18:30:00Z"
   },
   {
-    id: "student-2",
-    name: "Mariana Morales Pantoja",
-    email: "mariana.morales@aztlan.edu.mx",
-    password: "Alumno2026!",
-    role: "student",
-    matricula: "AZT-1057-0915",
-    carrera: "Ingeniería Industrial - 10° Cuatrimestre",
-    createdAt: "2026-11-02T09:15:00Z",
-    lastLogin: "2026-11-06T14:20:00Z"
-  },
-  {
     id: "student-3",
     name: "Alejandro Ruiz Domínguez",
     email: "alejandro.ruiz@aztlan.edu.mx",
@@ -130,21 +119,6 @@ export const INITIAL_PROGRESS: Record<string, StudentProgress> = {
     projectNotes: "Avance del 60%: Layout 2D completo y diagrama P&ID en proceso.",
     globalPercent: 35,
     lastActive: "2026-11-07T18:30:00Z"
-  },
-  "student-2": {
-    userId: "student-2",
-    units: {
-      "unidad-1": { unitId: "unidad-1", completed: true, score: 100, lastAccessed: "2026-11-04T16:00:00Z" }
-    },
-    practices: {
-      "practica-1": { practiceId: "practica-1", completed: true, score: 100, completedAt: "2026-11-04T16:45:00Z", commandsUsed: ["UNITS", "LIMITS", "ZOOM", "RECTANG", "OFFSET", "TEXT"] }
-    },
-    quizScores: {
-      "quiz-1": 100
-    },
-    projectStatus: "no_iniciado",
-    globalPercent: 14,
-    lastActive: "2026-11-06T14:20:00Z"
   },
   "student-3": {
     userId: "student-3",
