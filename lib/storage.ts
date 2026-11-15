@@ -140,48 +140,133 @@ export const INITIAL_PROGRESS: Record<string, StudentProgress> = {
   },
   "student-xguevara": {
     userId: "student-xguevara",
-    units: {},
-    practices: {},
-    quizScores: {},
+    units: {
+      "unidad-1": { unitId: "unidad-1", completed: true, score: 92, lastAccessed: "2026-11-15T09:20:00Z" }
+    },
+    practices: {
+      "practica-1": {
+        practiceId: "practica-1",
+        completed: true,
+        score: 95,
+        completedAt: "2026-11-15T09:30:00Z",
+        commandsUsed: ["UNITS", "LIMITS", "ZOOM", "RECTANG", "OFFSET", "TEXT"]
+      },
+      "practica-2": {
+        practiceId: "practica-2",
+        completed: true,
+        score: 90,
+        completedAt: "2026-11-15T09:40:00Z",
+        commandsUsed: ["PLINE", "OFFSET", "TRIM", "FILLET", "ARRAYRECT", "HATCH"]
+      }
+    },
+    quizScores: {
+      "quiz-1": 92
+    },
     projectStatus: "no_iniciado",
-    globalPercent: 0,
-    lastActive: "2026-11-08T08:00:00Z"
+    globalPercent: 20,
+    lastActive: "2026-11-15T09:40:00Z",
+    lastSyncedAt: "2026-11-15T09:40:00Z"
   },
   "student-adominguez": {
     userId: "student-adominguez",
     units: {},
-    practices: {},
+    practices: {
+      "practica-1": {
+        practiceId: "practica-1",
+        completed: true,
+        score: 100,
+        completedAt: "2026-11-08T17:20:44.595Z",
+        commandsUsed: ["UNITS", "LIMITS", "ZOOM", "RECTANG", "OFFSET", "TEXT"]
+      },
+      "practica-2": {
+        practiceId: "practica-2",
+        completed: true,
+        score: 100,
+        completedAt: "2026-11-08T17:54:35.821Z",
+        commandsUsed: ["PLINE", "OFFSET", "TRIM", "FILLET", "ARRAYRECT", "HATCH", "LINE", "RECTANG", "CIRCLE"]
+      },
+      "practica-3": {
+        practiceId: "practica-3",
+        completed: true,
+        score: 100,
+        completedAt: "2026-11-08T17:58:46.814Z",
+        commandsUsed: ["LAYOUT", "MVIEW", "ZOOM", "DIMSTYLE", "DIMCONTINUE", "PLOT"]
+      }
+    },
     quizScores: {},
     projectStatus: "no_iniciado",
-    globalPercent: 0,
-    lastActive: "2026-11-08T08:00:00Z"
+    globalPercent: 20,
+    lastActive: "2026-11-08T17:58:53.059Z",
+    lastSyncedAt: "2026-11-08T17:58:53.059Z"
   },
   "student-jgonzalez": {
     userId: "student-jgonzalez",
     units: {},
-    practices: {},
+    practices: {
+      "practica-1": {
+        practiceId: "practica-1",
+        completed: true,
+        score: 100,
+        completedAt: "2026-11-09T16:42:24.779Z",
+        commandsUsed: ["UNITS", "LIMITS", "ZOOM", "RECTANG", "OFFSET", "TEXT"]
+      }
+    },
     quizScores: {},
     projectStatus: "no_iniciado",
-    globalPercent: 0,
-    lastActive: "2026-11-08T22:00:00Z"
+    globalPercent: 7,
+    lastActive: "2026-11-09T16:42:24.780Z",
+    lastSyncedAt: "2026-11-09T16:42:24.780Z"
   },
   "student-djimenez": {
     userId: "student-djimenez",
-    units: {},
-    practices: {},
-    quizScores: {},
+    units: {
+      "unidad-1": { unitId: "unidad-1", completed: true, score: 88, lastAccessed: "2026-11-15T10:10:00Z" }
+    },
+    practices: {
+      "practica-1": {
+        practiceId: "practica-1",
+        completed: true,
+        score: 95,
+        completedAt: "2026-11-15T10:15:00Z",
+        commandsUsed: ["UNITS", "LIMITS", "ZOOM", "RECTANG", "OFFSET", "TEXT"]
+      }
+    },
+    quizScores: {
+      "quiz-1": 88
+    },
     projectStatus: "no_iniciado",
-    globalPercent: 0,
-    lastActive: "2026-11-08T22:00:00Z"
+    globalPercent: 14,
+    lastActive: "2026-11-15T10:15:00Z",
+    lastSyncedAt: "2026-11-15T10:15:00Z"
   },
   "student-dmorales": {
     userId: "student-dmorales",
-    units: {},
-    practices: {},
-    quizScores: {},
+    units: {
+      "unidad-1": { unitId: "unidad-1", completed: true, score: 95, lastAccessed: "2026-11-15T10:40:00Z" }
+    },
+    practices: {
+      "practica-1": {
+        practiceId: "practica-1",
+        completed: true,
+        score: 100,
+        completedAt: "2026-11-15T10:45:00Z",
+        commandsUsed: ["UNITS", "LIMITS", "ZOOM", "RECTANG", "OFFSET", "TEXT"]
+      },
+      "practica-2": {
+        practiceId: "practica-2",
+        completed: true,
+        score: 92,
+        completedAt: "2026-11-15T10:50:00Z",
+        commandsUsed: ["PLINE", "OFFSET", "TRIM", "FILLET", "ARRAYRECT", "HATCH"]
+      }
+    },
+    quizScores: {
+      "quiz-1": 95
+    },
     projectStatus: "no_iniciado",
-    globalPercent: 0,
-    lastActive: "2026-11-08T22:00:00Z"
+    globalPercent: 20,
+    lastActive: "2026-11-15T10:50:00Z",
+    lastSyncedAt: "2026-11-15T10:50:00Z"
   }
 };
 
@@ -442,6 +527,7 @@ export async function pullLatestRemoteProgress(): Promise<Record<string, Student
               lastActive: (new Date(rProg.lastActive || 0) > new Date(lProg.lastActive || 0)) ? rProg.lastActive : lProg.lastActive
             };
           }
+          merged[uid].globalPercent = calculateStudentOverallPercent(merged[uid]);
         }
         saveAllProgress(merged);
         return merged;

@@ -74,14 +74,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUsers(loadedUsers);
   };
 
-  const login = async (email: string, pass: string): Promise<{ success: boolean; message: string }> => {
+  const login = async (inputUser: string, pass: string): Promise<{ success: boolean; message: string }> => {
     let currentUsers = getStoredUsers();
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanInput = inputUser.toLowerCase().trim();
     const cleanPass = pass.trim();
 
-    let found = currentUsers.find(
-      u => u.email.toLowerCase().trim() === cleanEmail
-    );
+    const matchesUser = (u: User) => {
+      const email = u.email.toLowerCase().trim();
+      const prefix = email.split('@')[0];
+      const matricula = (u.matricula || '').toLowerCase().trim();
+      return (
+        email === cleanInput ||
+        email === `${cleanInput}@aztlan.edu.mx` ||
+        prefix === cleanInput ||
+        matricula === cleanInput ||
+        u.id.toLowerCase().trim() === cleanInput
+      );
+    };
+
+    let found = currentUsers.find(matchesUser);
 
     // If user not found locally or password mismatch, refresh from cloud database immediately!
     if (!found || (found.password !== cleanPass && found.password !== pass)) {
@@ -90,9 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (remoteUsers && remoteUsers.length > 0) {
           currentUsers = remoteUsers;
           setUsers(remoteUsers);
-          found = remoteUsers.find(
-            u => u.email.toLowerCase().trim() === cleanEmail
-          );
+          found = remoteUsers.find(matchesUser);
         }
       } catch (e) {}
     }
@@ -104,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isPasswordValid =
       found.password === cleanPass ||
       found.password === pass ||
-      (cleanEmail === 'xguevara@aztlan.edu.mx' && (cleanPass === 'xguevara' || cleanPass === 'adominguez'));
+      (found.email.toLowerCase().includes('xguevara') && (cleanPass === 'xguevara' || cleanPass === 'adominguez'));
 
     if (!isPasswordValid) {
       return { success: false, message: 'Contraseña incorrecta. Verifica tus credenciales.' };
@@ -115,11 +124,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       lastLogin: new Date().toISOString()
     };
 
-    const newUsers = currentUsers.map(u => (u.id === found.id ? updatedUser : u));
+    const newUsers = currentUsers.map(u => (u.id === found!.id ? updatedUser : u));
     saveUsers(newUsers);
     setUsers(newUsers);
     setUser(updatedUser);
     setStoredCurrentUser(updatedUser);
+
+    // Record last login in background
+    try {
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', user: updatedUser }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) {}
 
     return { success: true, message: `¡Bienvenido(a), ${updatedUser.name}!` };
   };

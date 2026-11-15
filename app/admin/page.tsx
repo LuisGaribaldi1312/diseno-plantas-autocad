@@ -208,12 +208,15 @@ export default function AdminPage() {
     let csv = "ID,Nombre,Matricula,Email,Rol,ProgresoGlobal,UnidadesCompletadas,PracticasCompletadas,PromedioQuiz,ProyectoEstatus,ProyectoNota,UltimoAcceso\n";
 
     users.forEach(u => {
-      const p = progressData[u.id];
-      const uCount = p ? Object.values(p.units).filter(un => un.completed).length : 0;
-      const prCount = p ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
-      const qScores = p ? Object.values(p.quizScores) : [];
+      const cleanEmail = u.email.toLowerCase().trim();
+      const p = progressData[u.id] ||
+        progressData[cleanEmail] ||
+        Object.values(progressData).find(prog => prog.userId === u.id || (prog as any).userEmail === cleanEmail);
+      const uCount = p ? Object.values(p.units || {}).filter(un => un.completed).length : 0;
+      const prCount = p ? Object.values(p.practices || {}).filter(pr => pr.completed).length : 0;
+      const qScores = p && p.quizScores ? Object.values(p.quizScores) : [];
       const qAvg = qScores.length > 0 ? Math.round(qScores.reduce((a, b) => a + b, 0) / qScores.length) : 0;
-      const global = p?.globalPercent !== undefined ? p.globalPercent : calculateStudentOverallPercent(p);
+      const global = p ? calculateStudentOverallPercent(p) : 0;
 
       csv += `"${u.id}","${u.name}","${u.matricula}","${u.email}","${u.role}","${global}%","${uCount}/6","${prCount}/6","${qAvg}%","${p?.projectStatus || 'no_iniciado'}","${p?.projectGrade || 'N/A'}","${u.lastLogin || 'Nunca'}"\n`;
     });
@@ -404,12 +407,13 @@ export default function AdminPage() {
             </thead>
             <tbody className="divide-y divide-[#222222]">
               {filteredUsers.map(u => {
-                const p = progressData[u.id];
-                const uCount = p ? Object.values(p.units).filter(un => un.completed).length : 0;
-                const prCount = p ? Object.values(p.practices).filter(pr => pr.completed).length : 0;
-                const globalPercent = p?.globalPercent !== undefined
-                  ? p.globalPercent
-                  : calculateStudentOverallPercent(p);
+                const cleanEmail = u.email.toLowerCase().trim();
+                const p = progressData[u.id] ||
+                  progressData[cleanEmail] ||
+                  Object.values(progressData).find(prog => prog.userId === u.id || (prog as any).userEmail === cleanEmail);
+                const uCount = p ? Object.values(p.units || {}).filter(un => un.completed).length : 0;
+                const prCount = p ? Object.values(p.practices || {}).filter(pr => pr.completed).length : 0;
+                const globalPercent = p ? calculateStudentOverallPercent(p) : 0;
 
                 return (
                   <tr key={u.id} className="hover:bg-[#1A1A1A] transition">

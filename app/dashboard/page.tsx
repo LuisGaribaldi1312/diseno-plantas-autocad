@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/authContext';
 import { COURSE_UNITS } from '@/lib/courseData';
-import { getStudentProgress, calculateStudentOverallPercent, syncProgressToRemote, forceStudentSync } from '@/lib/storage';
+import { getStudentProgress, calculateStudentOverallPercent, syncProgressToRemote, forceStudentSync, pullLatestRemoteProgress } from '@/lib/storage';
 import { StudentProgress } from '@/lib/types';
 import confetti from 'canvas-confetti';
 import {
@@ -30,10 +30,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const p = getStudentProgress(user.id);
-      setProgress(p);
-      // Auto sync progress to cloud and teacher hub immediately
-      syncProgressToRemote(user.id, p, 'Sincronización automática de avance del estudiante');
+      pullLatestRemoteProgress().then(remoteAll => {
+        const p = remoteAll[user.id] || getStudentProgress(user.id);
+        setProgress(p);
+        syncProgressToRemote(user.id, p, 'Sincronización automática de avance del estudiante');
+      }).catch(() => {
+        const p = getStudentProgress(user.id);
+        setProgress(p);
+      });
     }
   }, [user]);
 

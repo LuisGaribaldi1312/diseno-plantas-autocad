@@ -88,11 +88,11 @@ export default function LoginPage() {
                 Correo Institucional o Usuario
               </label>
               <input
-                type="email"
+                type="text"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="ejemplo@aztlan.edu.mx"
+                placeholder="ejemplo@aztlan.edu.mx o usuario (ej. djimenez)"
                 className="w-full bg-[#1C1C1C] border border-[#333333] rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#E51020] focus:ring-1 focus:ring-[#E51020] transition"
               />
             </div>

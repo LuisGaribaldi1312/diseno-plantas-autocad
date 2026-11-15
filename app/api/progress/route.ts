@@ -79,14 +79,32 @@ export async function POST(req: Request) {
 
     const current = await loadCloudProgress();
 
+    const mergeRecord = (existing: StudentProgress | undefined, incoming: StudentProgress): StudentProgress => {
+      if (!existing) return incoming;
+      return {
+        ...existing,
+        ...incoming,
+        units: { ...(existing.units || {}), ...(incoming.units || {}) },
+        practices: { ...(existing.practices || {}), ...(incoming.practices || {}) },
+        quizScores: { ...(existing.quizScores || {}), ...(incoming.quizScores || {}) },
+        projectStatus: incoming.projectStatus && incoming.projectStatus !== 'no_iniciado' ? incoming.projectStatus : existing.projectStatus,
+        projectGrade: incoming.projectGrade !== undefined ? incoming.projectGrade : existing.projectGrade,
+        projectUrl: incoming.projectUrl || existing.projectUrl,
+        projectNotes: incoming.projectNotes || existing.projectNotes,
+        lastActive: incoming.lastActive || existing.lastActive || new Date().toISOString(),
+        lastSyncedAt: new Date().toISOString(),
+        globalPercent: incoming.globalPercent !== undefined ? Math.max(incoming.globalPercent, existing.globalPercent || 0) : existing.globalPercent
+      };
+    };
+
     if (batch && typeof batch === 'object') {
       // Merge batch of student progress records
       for (const [uid, p] of Object.entries(batch)) {
-        current[uid] = p as StudentProgress;
+        current[uid] = mergeRecord(current[uid], p as StudentProgress);
       }
     } else if (userId && progress) {
-      // Merge single student progress record
-      current[userId] = progress as StudentProgress;
+      // Merge single student progress record deeply
+      current[userId] = mergeRecord(current[userId], progress as StudentProgress);
     } else {
       return NextResponse.json({ success: false, error: 'Invalid payload: userId and progress required' }, { status: 400 });
     }
